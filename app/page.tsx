@@ -1,72 +1,72 @@
 // app/page.tsx
 // Signal402 - prediction market screener
-// Build 2: reliable volume sorting + 24h movement column
+// Build 5: paginate via offset to gather a varied pool (not just the top-volume cluster)
+
+import MarketTable, { Market } from "./MarketTable";
 
 type PolymarketMarket = {
   question: string;
   volume?: string;
-  outcomePrices?: string; // JSON string like "[\"0.73\", \"0.27\"]"
+  outcomePrices?: string;
   oneDayPriceChange?: number;
-  active?: boolean;
-  closed?: boolean;
 };
 
-async function getMarkets(): Promise<PolymarketMarket[]> {
+async function fetchPage(offset: number): Promise<PolymarketMarket[]> {
   try {
     const res = await fetch(
-      "https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=100",
-      { next: { revalidate: 60 } } // cache for 60s
+      `https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=100&offset=${offset}`,
+      { next: { revalidate: 60 } }
     );
     if (!res.ok) return [];
     const data = await res.json();
-    if (!Array.isArray(data)) return [];
-
-    // Sort by volume descending, in-code (reliable)
-    const sorted = (data as PolymarketMarket[]).sort((a, b) => {
-      const va = parseFloat(a.volume ?? "0") || 0;
-      const vb = parseFloat(b.volume ?? "0") || 0;
-      return vb - va;
-    });
-
-    return sorted.slice(0, 40);
+    return Array.isArray(data) ? (data as PolymarketMarket[]) : [];
   } catch {
     return [];
   }
 }
 
-function yesPrice(m: PolymarketMarket): string {
-  if (!m.outcomePrices) return "-";
-  try {
-    const prices = JSON.parse(m.outcomePrices) as string[];
-    if (prices.length > 0) {
-      const pct = Math.round(parseFloat(prices[0]) * 100);
-      return `${pct}%`;
+async function getMarkets(): Promise<Market[]> {
+  // Pull several pages in parallel for variety
+  const pages = await Promise.all([
+    fetchPage(0),
+    fetchPage(100),
+    fetchPage(200),
+    fetchPage(300),
+  ]);
+  const all = pages.flat();
+
+  const cleaned: Market[] = all.map((m) => {
+    let yes = -1;
+    if (m.outcomePrices) {
+      try {
+        const prices = JSON.parse(m.outcomePrices) as string[];
+        if (prices.length > 0) yes = Math.round(parseFloat(prices[0]) * 100);
+      } catch {
+        yes = -1;
+      }
     }
-  } catch {
-    return "-";
-  }
-  return "-";
-}
+    let move: number | null = null;
+    if (
+      m.oneDayPriceChange !== undefined &&
+      m.oneDayPriceChange !== null &&
+      !isNaN(m.oneDayPriceChange)
+    ) {
+      move = Math.round(m.oneDayPriceChange * 100);
+    }
+    const vol = parseFloat(m.volume ?? "0") || 0;
+    return { question: m.question ?? "(untitled)", yes, move, volume: vol };
+  });
 
-function formatVolume(v?: string): string {
-  if (!v) return "-";
-  const n = parseFloat(v);
-  if (isNaN(n)) return "-";
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n.toFixed(0)}`;
-}
+  // de-duplicate by question (offset pages can overlap)
+  const seen = new Set<string>();
+  const unique = cleaned.filter((m) => {
+    if (seen.has(m.question)) return false;
+    seen.add(m.question);
+    return true;
+  });
 
-// Returns { text, className } for the 24h change cell
-function movement(m: PolymarketMarket): { text: string; className: string } {
-  const c = m.oneDayPriceChange;
-  if (c === undefined || c === null || isNaN(c)) {
-    return { text: "-", className: "text-neutral-600" };
-  }
-  const pts = Math.round(c * 100); // change in percentage points
-  if (pts > 0) return { text: `+${pts}`, className: "text-emerald-400" };
-  if (pts < 0) return { text: `${pts}`, className: "text-rose-400" };
-  return { text: "0", className: "text-neutral-500" };
+  unique.sort((a, b) => b.volume - a.volume);
+  return unique;
 }
 
 export default async function Home() {
@@ -75,55 +75,14 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 px-6 py-10">
       <div className="max-w-5xl mx-auto">
-        <header className="mb-8">
+        <header className="mb-6">
           <h1 className="text-3xl font-semibold tracking-tight">Signal402</h1>
           <p className="text-neutral-400 mt-1">
             A screener for prediction markets. Live data, no noise. You decide.
           </p>
         </header>
 
-        {markets.length === 0 ? (
-          <p className="text-neutral-500">
-            No markets loaded. The data source may be unreachable right now.
-          </p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-neutral-800">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-neutral-900 text-neutral-400">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Market</th>
-                  <th className="px-4 py-3 font-medium text-right">Yes</th>
-                  <th className="px-4 py-3 font-medium text-right">24h</th>
-                  <th className="px-4 py-3 font-medium text-right">Volume</th>
-                </tr>
-              </thead>
-              <tbody>
-                {markets.map((m, i) => {
-                  const move = movement(m);
-                  return (
-                    <tr
-                      key={i}
-                      className="border-t border-neutral-800 hover:bg-neutral-900/50"
-                    >
-                      <td className="px-4 py-3 max-w-xl">{m.question}</td>
-                      <td className="px-4 py-3 text-right tabular-nums text-amber-400">
-                        {yesPrice(m)}
-                      </td>
-                      <td
-                        className={`px-4 py-3 text-right tabular-nums ${move.className}`}
-                      >
-                        {move.text}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums text-neutral-300">
-                        {formatVolume(m.volume)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <MarketTable markets={markets} />
 
         <footer className="mt-8 text-xs text-neutral-600">
           Data from Polymarket. The 24h column shows the change in the Yes
