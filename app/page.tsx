@@ -1,8 +1,8 @@
 // app/page.tsx
 // Signal402 - prediction market screener
-// Build 8.2: fix Polymarket link to use the event slug (not the market slug)
+// Build 9: add cross-platform Compare view (framework, ready for more sources)
 
-import MarketTable from "./MarketTable";
+import ScreenerApp from "./ScreenerApp";
 import { Market } from "./types";
 
 function fmtDate(input?: string | number): string {
@@ -49,7 +49,6 @@ async function fetchPolyPage(offset: number): Promise<PolymarketMarket[]> {
 }
 
 function polyUrl(m: PolymarketMarket): string {
-  // Polymarket event pages live at /event/{event-slug}
   const eventSlug = m.events && m.events[0] ? m.events[0].slug : undefined;
   if (eventSlug) return `https://polymarket.com/event/${eventSlug}`;
   if (m.slug) return `https://polymarket.com/event/${m.slug}`;
@@ -192,7 +191,7 @@ export default async function Home() {
           </div>
         </header>
 
-        <MarketTable markets={markets} />
+        <ScreenerApp markets={markets} />
 
         <footer className="mt-8 text-xs text-zinc-700 font-mono leading-relaxed">
           Data: Polymarket (real money) · Manifold (play money). 24h = change in
