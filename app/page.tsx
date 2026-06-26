@@ -1,6 +1,6 @@
 // app/page.tsx
 // Signal402 - prediction market screener
-// Build 6: multi-source (Polymarket + Manifold), with source labels
+// Build 7: dexscreener-vibe redesign (terminal header + dense table)
 
 import MarketTable from "./MarketTable";
 import { Market } from "./types";
@@ -67,7 +67,6 @@ async function getPolymarket(): Promise<Market[]> {
 type ManifoldMarket = {
   question: string;
   probability?: number;
-  volume24Hours?: number;
   volume?: number;
   outcomeType?: string;
   isResolved?: boolean;
@@ -92,7 +91,7 @@ async function getManifold(): Promise<Market[]> {
       .map((m) => ({
         question: m.question ?? "(untitled)",
         yes: Math.round((m.probability ?? 0) * 100),
-        move: null, // Manifold doesn't give a simple 24h delta here
+        move: null,
         volume: m.volume ?? 0,
         source: "Manifold" as const,
         realMoney: false,
@@ -104,41 +103,56 @@ async function getManifold(): Promise<Market[]> {
 
 async function getMarkets(): Promise<Market[]> {
   const [poly, manifold] = await Promise.all([getPolymarket(), getManifold()]);
-
-  // de-duplicate by question within the combined set
   const seen = new Set<string>();
   const all = [...poly, ...manifold].filter((m) => {
     if (seen.has(m.question)) return false;
     seen.add(m.question);
     return true;
   });
-
-  // sort by volume desc (note: cross-source volume isn't directly comparable;
-  // the source filter lets users view one platform at a time)
   all.sort((a, b) => b.volume - a.volume);
   return all;
 }
 
 export default async function Home() {
   const markets = await getMarkets();
+  const realCount = markets.filter((m) => m.realMoney).length;
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-100 px-6 py-10">
-      <div className="max-w-5xl mx-auto">
-        <header className="mb-6">
-          <h1 className="text-3xl font-semibold tracking-tight">Signal402</h1>
-          <p className="text-neutral-400 mt-1">
-            A screener for prediction markets. Live data, no noise. You decide.
+    <main className="min-h-screen bg-zinc-950 text-zinc-100">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* terminal-style header */}
+        <header className="mb-6 border-b border-zinc-800/80 pb-5">
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold tracking-tight">
+              <span className="text-amber-400">signal</span>
+              <span className="text-zinc-500 font-mono">402</span>
+            </h1>
+            <span className="font-mono text-xs text-zinc-600 uppercase tracking-widest">
+              prediction market screener
+            </span>
+          </div>
+          <p className="text-zinc-500 text-sm mt-1.5 font-mono">
+            Signal through the noise. {markets.length} markets across 2 sources.
+            You decide.
           </p>
+          {/* quick stat strip */}
+          <div className="flex gap-4 mt-3 font-mono text-xs">
+            <span className="text-zinc-500">
+              <span className="text-emerald-400">{realCount}</span> real-money
+            </span>
+            <span className="text-zinc-500">
+              <span className="text-zinc-300">{markets.length - realCount}</span>{" "}
+              play-money
+            </span>
+          </div>
         </header>
 
         <MarketTable markets={markets} />
 
-        <footer className="mt-8 text-xs text-neutral-600">
-          Data from Polymarket (real money) and Manifold (play money). The 24h
-          column shows the change in the Yes probability over the last day, in
-          percentage points, where available. Signal402 displays public market
-          data and does not provide betting advice.
+        <footer className="mt-8 text-xs text-zinc-700 font-mono leading-relaxed">
+          Data: Polymarket (real money) · Manifold (play money). 24h = change in
+          Yes probability over the last day, in points, where available. Signal402
+          displays public market data and does not provide betting advice.
         </footer>
       </div>
     </main>
