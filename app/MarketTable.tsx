@@ -1,10 +1,10 @@
 // app/MarketTable.tsx
 // Signal402 - dexscreener-vibe screener table
-// Pass 1: dense terminal look, probability bars (signature), sortable columns
+// Build 8.1: expandable row detail (fragment key fixed)
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import { Market } from "./types";
 
 type SourceFilter = "all" | "Polymarket" | "Manifold";
@@ -25,17 +25,16 @@ function moveCell(move: number | null): { text: string; className: string } {
   return { text: "0", className: "text-zinc-500" };
 }
 
-// The signature element: a probability bar that shows crowd belief at a glance.
 function ProbBar({ yes }: { yes: number }) {
   if (yes < 0) {
     return <span className="text-zinc-600 font-mono text-xs">—</span>;
   }
   return (
     <div className="flex items-center gap-2">
-      <div className="w-16 h-1.5 rounded-full bg-zinc-800 overflow-hidden">
+      <div className="w-16 h-2 rounded-full bg-zinc-800 overflow-hidden">
         <div
           className="h-full rounded-full bg-amber-400"
-          style={{ width: `${Math.max(2, yes)}%` }}
+          style={{ width: `${Math.max(3, yes)}%` }}
         />
       </div>
       <span className="font-mono text-xs tabular-nums text-amber-300 w-9 text-right">
@@ -50,6 +49,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
   const [source, setSource] = useState<SourceFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("volume");
   const [sortDesc, setSortDesc] = useState(true);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   const rows = useMemo(() => {
     let r = markets;
@@ -76,12 +76,12 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
   }, [markets, source, query, sortKey, sortDesc]);
 
   function toggleSort(key: SortKey) {
-    if (sortKey === key) {
-      setSortDesc((d) => !d);
-    } else {
+    if (sortKey === key) setSortDesc((d) => !d);
+    else {
       setSortKey(key);
       setSortDesc(true);
     }
+    setExpanded(null);
   }
 
   const sortArrow = (key: SortKey) =>
@@ -91,12 +91,14 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
 
   return (
     <div>
-      {/* control bar */}
       <div className="flex flex-col sm:flex-row gap-2 mb-3">
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setExpanded(null);
+          }}
           placeholder="Search markets…  e.g. world cup, election, bitcoin"
           className="flex-1 px-3 py-2 rounded bg-zinc-900/80 border border-zinc-800 text-zinc-100 placeholder-zinc-600 font-mono text-sm focus:outline-none focus:border-amber-500/60"
         />
@@ -104,7 +106,10 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
           {tabs.map((t) => (
             <button
               key={t}
-              onClick={() => setSource(t)}
+              onClick={() => {
+                setSource(t);
+                setExpanded(null);
+              }}
               className={`px-3 py-2 rounded text-xs font-mono uppercase tracking-wide border transition-colors ${
                 source === t
                   ? "bg-amber-500/15 border-amber-500/50 text-amber-300"
@@ -117,7 +122,6 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
         </div>
       </div>
 
-      {/* status line */}
       <div className="flex items-center gap-2 mb-2 px-1">
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
@@ -129,7 +133,6 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
         </span>
       </div>
 
-      {/* table */}
       {rows.length === 0 ? (
         <p className="text-zinc-600 font-mono text-sm px-1 py-8">
           No markets match. Clear the search or switch source.
@@ -164,37 +167,99 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
             <tbody>
               {rows.map((m, i) => {
                 const mv = moveCell(m.move);
+                const isOpen = expanded === i;
                 return (
-                  <tr
-                    key={i}
-                    className="border-t border-zinc-800/60 hover:bg-zinc-900/60 transition-colors"
-                  >
-                    <td className="px-3 py-2 max-w-md text-zinc-200 leading-snug">
-                      {m.question}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-mono uppercase ${
-                          m.realMoney
-                            ? "bg-emerald-500/10 text-emerald-400"
-                            : "bg-zinc-700/40 text-zinc-500"
-                        }`}
-                      >
-                        {m.source === "Polymarket" ? "POLY" : "MANI"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <ProbBar yes={m.yes} />
-                    </td>
-                    <td
-                      className={`px-3 py-2 text-right font-mono text-xs tabular-nums ${mv.className}`}
+                  <Fragment key={i}>
+                    <tr
+                      onClick={() => setExpanded(isOpen ? null : i)}
+                      className={`border-t border-zinc-800/60 cursor-pointer transition-colors ${
+                        isOpen ? "bg-zinc-900/80" : "hover:bg-zinc-900/60"
+                      }`}
                     >
-                      {mv.text}
-                    </td>
-                    <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-zinc-300">
-                      {formatVolume(m.volume, m.realMoney)}
-                    </td>
-                  </tr>
+                      <td className="px-3 py-2 max-w-md text-zinc-200 leading-snug">
+                        <span className="text-zinc-600 mr-1.5 font-mono text-xs">
+                          {isOpen ? "▾" : "▸"}
+                        </span>
+                        {m.question}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-mono uppercase ${
+                            m.realMoney
+                              ? "bg-emerald-500/10 text-emerald-400"
+                              : "bg-zinc-700/40 text-zinc-500"
+                          }`}
+                        >
+                          {m.source === "Polymarket" ? "POLY" : "MANI"}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">
+                        <ProbBar yes={m.yes} />
+                      </td>
+                      <td
+                        className={`px-3 py-2 text-right font-mono text-xs tabular-nums ${mv.className}`}
+                      >
+                        {mv.text}
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-zinc-300">
+                        {formatVolume(m.volume, m.realMoney)}
+                      </td>
+                    </tr>
+                    {isOpen && (
+                      <tr className="bg-zinc-900/40">
+                        <td colSpan={5} className="px-3 pb-4 pt-1">
+                          <div className="border-l-2 border-amber-500/40 pl-4 ml-1">
+                            <div className="flex gap-6 mb-3 font-mono text-xs flex-wrap">
+                              <span className="text-zinc-500">
+                                Yes{" "}
+                                <span className="text-amber-300">
+                                  {m.yes < 0 ? "—" : `${m.yes}%`}
+                                </span>
+                              </span>
+                              <span className="text-zinc-500">
+                                No{" "}
+                                <span className="text-zinc-300">
+                                  {m.no < 0 ? "—" : `${m.no}%`}
+                                </span>
+                              </span>
+                              {m.closeDate && (
+                                <span className="text-zinc-500">
+                                  Closes{" "}
+                                  <span className="text-zinc-300">
+                                    {m.closeDate}
+                                  </span>
+                                </span>
+                              )}
+                              {m.liquidity > 0 && (
+                                <span className="text-zinc-500">
+                                  Liquidity{" "}
+                                  <span className="text-zinc-300">
+                                    {formatVolume(m.liquidity, m.realMoney)}
+                                  </span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-zinc-400 text-sm leading-relaxed max-w-3xl mb-3">
+                              {m.description
+                                ? m.description.length > 400
+                                  ? m.description.slice(0, 400) + "…"
+                                  : m.description
+                                : "No description provided for this market."}
+                            </p>
+                            <a
+                              href={m.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-block font-mono text-xs text-amber-400 hover:text-amber-300 underline underline-offset-2"
+                            >
+                              View on {m.source} ↗
+                            </a>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 );
               })}
             </tbody>

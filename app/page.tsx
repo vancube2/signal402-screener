@@ -1,16 +1,37 @@
 // app/page.tsx
 // Signal402 - prediction market screener
-// Build 7: dexscreener-vibe redesign (terminal header + dense table)
+// Build 8.2: fix Polymarket link to use the event slug (not the market slug)
 
 import MarketTable from "./MarketTable";
 import { Market } from "./types";
 
+function fmtDate(input?: string | number): string {
+  if (!input) return "";
+  try {
+    const d = new Date(input);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
+
 // ---------- Polymarket ----------
+type PolymarketEvent = { slug?: string };
 type PolymarketMarket = {
-  question: string;
+  question?: string;
+  description?: string;
+  slug?: string;
+  events?: PolymarketEvent[];
   volume?: string;
+  liquidity?: string;
   outcomePrices?: string;
   oneDayPriceChange?: number;
+  endDate?: string;
 };
 
 async function fetchPolyPage(offset: number): Promise<PolymarketMarket[]> {
@@ -27,6 +48,14 @@ async function fetchPolyPage(offset: number): Promise<PolymarketMarket[]> {
   }
 }
 
+function polyUrl(m: PolymarketMarket): string {
+  // Polymarket event pages live at /event/{event-slug}
+  const eventSlug = m.events && m.events[0] ? m.events[0].slug : undefined;
+  if (eventSlug) return `https://polymarket.com/event/${eventSlug}`;
+  if (m.slug) return `https://polymarket.com/event/${m.slug}`;
+  return "https://polymarket.com";
+}
+
 async function getPolymarket(): Promise<Market[]> {
   const pages = await Promise.all([
     fetchPolyPage(0),
@@ -36,10 +65,12 @@ async function getPolymarket(): Promise<Market[]> {
   const all = pages.flat();
   return all.map((m) => {
     let yes = -1;
+    let no = -1;
     if (m.outcomePrices) {
       try {
         const prices = JSON.parse(m.outcomePrices) as string[];
         if (prices.length > 0) yes = Math.round(parseFloat(prices[0]) * 100);
+        if (prices.length > 1) no = Math.round(parseFloat(prices[1]) * 100);
       } catch {
         yes = -1;
       }
@@ -55,21 +86,29 @@ async function getPolymarket(): Promise<Market[]> {
     return {
       question: m.question ?? "(untitled)",
       yes,
+      no,
       move,
       volume: parseFloat(m.volume ?? "0") || 0,
       source: "Polymarket" as const,
       realMoney: true,
+      description: m.description ?? "",
+      url: polyUrl(m),
+      closeDate: fmtDate(m.endDate),
+      liquidity: parseFloat(m.liquidity ?? "0") || 0,
     };
   });
 }
 
 // ---------- Manifold ----------
 type ManifoldMarket = {
-  question: string;
+  question?: string;
   probability?: number;
   volume?: number;
   outcomeType?: string;
   isResolved?: boolean;
+  url?: string;
+  textDescription?: string;
+  closeTime?: number;
 };
 
 async function getManifold(): Promise<Market[]> {
@@ -88,14 +127,22 @@ async function getManifold(): Promise<Market[]> {
           !m.isResolved &&
           typeof m.probability === "number"
       )
-      .map((m) => ({
-        question: m.question ?? "(untitled)",
-        yes: Math.round((m.probability ?? 0) * 100),
-        move: null,
-        volume: m.volume ?? 0,
-        source: "Manifold" as const,
-        realMoney: false,
-      }));
+      .map((m) => {
+        const yes = Math.round((m.probability ?? 0) * 100);
+        return {
+          question: m.question ?? "(untitled)",
+          yes,
+          no: 100 - yes,
+          move: null,
+          volume: m.volume ?? 0,
+          source: "Manifold" as const,
+          realMoney: false,
+          description: m.textDescription ?? "",
+          url: m.url ?? "https://manifold.markets",
+          closeDate: fmtDate(m.closeTime),
+          liquidity: 0,
+        };
+      });
   } catch {
     return [];
   }
@@ -120,7 +167,6 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* terminal-style header */}
         <header className="mb-6 border-b border-zinc-800/80 pb-5">
           <div className="flex items-baseline gap-3 flex-wrap">
             <h1 className="text-2xl font-bold tracking-tight">
@@ -135,7 +181,6 @@ export default async function Home() {
             Signal through the noise. {markets.length} markets across 2 sources.
             You decide.
           </p>
-          {/* quick stat strip */}
           <div className="flex gap-4 mt-3 font-mono text-xs">
             <span className="text-zinc-500">
               <span className="text-emerald-400">{realCount}</span> real-money
