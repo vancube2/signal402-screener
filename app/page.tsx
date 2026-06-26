@@ -1,9 +1,11 @@
 // app/page.tsx
 // Signal402 - prediction market screener
-// Build 5: paginate via offset to gather a varied pool (not just the top-volume cluster)
+// Build 6: multi-source (Polymarket + Manifold), with source labels
 
-import MarketTable, { Market } from "./MarketTable";
+import MarketTable from "./MarketTable";
+import { Market } from "./types";
 
+// ---------- Polymarket ----------
 type PolymarketMarket = {
   question: string;
   volume?: string;
@@ -11,7 +13,7 @@ type PolymarketMarket = {
   oneDayPriceChange?: number;
 };
 
-async function fetchPage(offset: number): Promise<PolymarketMarket[]> {
+async function fetchPolyPage(offset: number): Promise<PolymarketMarket[]> {
   try {
     const res = await fetch(
       `https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=100&offset=${offset}`,
@@ -25,17 +27,14 @@ async function fetchPage(offset: number): Promise<PolymarketMarket[]> {
   }
 }
 
-async function getMarkets(): Promise<Market[]> {
-  // Pull several pages in parallel for variety
+async function getPolymarket(): Promise<Market[]> {
   const pages = await Promise.all([
-    fetchPage(0),
-    fetchPage(100),
-    fetchPage(200),
-    fetchPage(300),
+    fetchPolyPage(0),
+    fetchPolyPage(100),
+    fetchPolyPage(200),
   ]);
   const all = pages.flat();
-
-  const cleaned: Market[] = all.map((m) => {
+  return all.map((m) => {
     let yes = -1;
     if (m.outcomePrices) {
       try {
@@ -53,20 +52,71 @@ async function getMarkets(): Promise<Market[]> {
     ) {
       move = Math.round(m.oneDayPriceChange * 100);
     }
-    const vol = parseFloat(m.volume ?? "0") || 0;
-    return { question: m.question ?? "(untitled)", yes, move, volume: vol };
+    return {
+      question: m.question ?? "(untitled)",
+      yes,
+      move,
+      volume: parseFloat(m.volume ?? "0") || 0,
+      source: "Polymarket" as const,
+      realMoney: true,
+    };
   });
+}
 
-  // de-duplicate by question (offset pages can overlap)
+// ---------- Manifold ----------
+type ManifoldMarket = {
+  question: string;
+  probability?: number;
+  volume24Hours?: number;
+  volume?: number;
+  outcomeType?: string;
+  isResolved?: boolean;
+};
+
+async function getManifold(): Promise<Market[]> {
+  try {
+    const res = await fetch(
+      "https://api.manifold.markets/v0/markets?limit=200&sort=last-bet-time",
+      { next: { revalidate: 60 } }
+    );
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+    return (data as ManifoldMarket[])
+      .filter(
+        (m) =>
+          m.outcomeType === "BINARY" &&
+          !m.isResolved &&
+          typeof m.probability === "number"
+      )
+      .map((m) => ({
+        question: m.question ?? "(untitled)",
+        yes: Math.round((m.probability ?? 0) * 100),
+        move: null, // Manifold doesn't give a simple 24h delta here
+        volume: m.volume ?? 0,
+        source: "Manifold" as const,
+        realMoney: false,
+      }));
+  } catch {
+    return [];
+  }
+}
+
+async function getMarkets(): Promise<Market[]> {
+  const [poly, manifold] = await Promise.all([getPolymarket(), getManifold()]);
+
+  // de-duplicate by question within the combined set
   const seen = new Set<string>();
-  const unique = cleaned.filter((m) => {
+  const all = [...poly, ...manifold].filter((m) => {
     if (seen.has(m.question)) return false;
     seen.add(m.question);
     return true;
   });
 
-  unique.sort((a, b) => b.volume - a.volume);
-  return unique;
+  // sort by volume desc (note: cross-source volume isn't directly comparable;
+  // the source filter lets users view one platform at a time)
+  all.sort((a, b) => b.volume - a.volume);
+  return all;
 }
 
 export default async function Home() {
@@ -85,9 +135,10 @@ export default async function Home() {
         <MarketTable markets={markets} />
 
         <footer className="mt-8 text-xs text-neutral-600">
-          Data from Polymarket. The 24h column shows the change in the Yes
-          probability over the last day, in percentage points. Signal402
-          displays public market data and does not provide betting advice.
+          Data from Polymarket (real money) and Manifold (play money). The 24h
+          column shows the change in the Yes probability over the last day, in
+          percentage points, where available. Signal402 displays public market
+          data and does not provide betting advice.
         </footer>
       </div>
     </main>
