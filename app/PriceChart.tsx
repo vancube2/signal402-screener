@@ -100,7 +100,7 @@ export default function PriceChart({ tokenId }: { tokenId?: string }) {
                 labelStyle={{ color: "#a1a1aa" }}
                 itemStyle={{ color: "#f5b301" }}
                 labelFormatter={(v) => fmtDate(v as number)}
-                formatter={(v: number) => [`${v}%`, "Yes"]}
+                formatter={(v) => [`${Number(v)}%`, "Yes"]}
               />
               <Line
                 type="monotone"

@@ -60,7 +60,7 @@ export default function MoversStrip({ markets }: { markets: Market[] }) {
   // sort by absolute 24h move, take top movers that actually have a clob token
   const movers = markets
     .filter((m) => m.source === "Polymarket" && m.clobTokenId && typeof m.move === "number" && Math.abs(m.move) > 0)
-    .sort((a, b) => Math.abs(b.move) - Math.abs(a.move))
+    .sort((a, b) => Math.abs(b.move ?? 0) - Math.abs(a.move ?? 0))
     .slice(0, 4);
 
   if (movers.length === 0) {
@@ -74,7 +74,8 @@ export default function MoversStrip({ markets }: { markets: Market[] }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {movers.map((m, i) => {
-          const up = m.move >= 0;
+          const move = m.move ?? 0;
+          const up = move >= 0;
           return (
             <div
               key={i}
@@ -95,7 +96,7 @@ export default function MoversStrip({ markets }: { markets: Market[] }) {
                 }`}
               >
                 {up ? "+" : ""}
-                {m.move}%
+                {move}%
               </div>
             </div>
           );

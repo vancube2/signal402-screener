@@ -87,7 +87,7 @@ export default function TrendChart({ history }: { history: TrendPoint[] }) {
               labelStyle={{ color: "#a1a1aa" }}
               itemStyle={{ color: "#f5b301" }}
               labelFormatter={(v) => fmtTime(v as number)}
-              formatter={(v: number) => [fmtVol(v), "volume"]}
+              formatter={(v) => [fmtVol(Number(v)), "volume"]}
             />
             <Line
               type="monotone"
