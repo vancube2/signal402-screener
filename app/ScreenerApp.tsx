@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Market } from "./types";
 import MarketTable from "./MarketTable";
+import Dashboard from "./Dashboard";
 import { findCrossPlatform } from "./compare";
 
 type View = "screener" | "compare";
@@ -53,6 +54,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
 
   return (
     <div>
+      <Dashboard markets={markets} />
       {/* view toggle */}
       <div className="flex gap-1 mb-4">
         {(["screener", "compare"] as View[]).map((v) => (
