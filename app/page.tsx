@@ -156,7 +156,7 @@ async function getManifold(): Promise<Market[]> {
   }
 }
 
-async function getMarkets(): Promise<Market[]> {
+export async function getMarkets(): Promise<Market[]> {
   const [poly, manifold] = await Promise.all([getPolymarket(), getManifold()]);
   const seen = new Set<string>();
   const all = [...poly, ...manifold].filter((m) => {

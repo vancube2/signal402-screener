@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Market } from "./types";
 import MarketTable from "./MarketTable";
 import { findCrossPlatform } from "./compare";
@@ -18,8 +18,37 @@ function formatVolume(n: number, realMoney: boolean): string {
   return `${prefix}${n.toFixed(0)}`;
 }
 
-export default function ScreenerApp({ markets }: { markets: Market[] }) {
+export default function ScreenerApp({ markets: initialMarkets }: { markets: Market[] }) {
   const [view, setView] = useState<View>("screener");
+  const [markets, setMarkets] = useState<Market[]>(initialMarkets);
+  const [updatedAt, setUpdatedAt] = useState<number>(Date.now());
+  const [ago, setAgo] = useState<number>(0);
+  const REFRESH_MS = 120000; // 2 minutes
+
+  // periodic quiet refresh
+  useEffect(() => {
+    const id = setInterval(async () => {
+      try {
+        const res = await fetch("/api/markets", { cache: "no-store" });
+        const data = await res.json();
+        if (Array.isArray(data.markets) && data.markets.length > 0) {
+          setMarkets(data.markets);
+          setUpdatedAt(Date.now());
+        }
+      } catch {
+        // keep last good data on failure
+      }
+    }, REFRESH_MS);
+    return () => clearInterval(id);
+  }, []);
+
+  // "updated Xs ago" ticker
+  useEffect(() => {
+    const id = setInterval(() => {
+      setAgo(Math.round((Date.now() - updatedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [updatedAt]);
   const groups = view === "compare" ? findCrossPlatform(markets) : [];
 
   return (
@@ -42,7 +71,13 @@ export default function ScreenerApp({ markets }: { markets: Market[] }) {
       </div>
 
       {view === "screener" ? (
-        <MarketTable markets={markets} />
+        <>
+          <div className="mb-2 font-mono text-[10px] text-zinc-600 flex items-center gap-2">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            auto-refreshes every 2 min &middot; updated {ago === 0 ? "just now" : `${ago}s ago`}
+          </div>
+          <MarketTable markets={markets} />
+        </>
       ) : (
         <div>
           <p className="font-mono text-xs text-zinc-500 mb-4 leading-relaxed max-w-2xl">
