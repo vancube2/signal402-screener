@@ -32,6 +32,7 @@ type PolymarketMarket = {
   outcomePrices?: string;
   oneDayPriceChange?: number;
   endDate?: string;
+  clobTokenIds?: string;
 };
 
 async function fetchPolyPage(offset: number): Promise<PolymarketMarket[]> {
@@ -94,6 +95,14 @@ async function getPolymarket(): Promise<Market[]> {
       url: polyUrl(m),
       closeDate: fmtDate(m.endDate),
       liquidity: parseFloat(m.liquidity ?? "0") || 0,
+      clobTokenId: (() => {
+        try {
+          const ids = m.clobTokenIds ? (JSON.parse(m.clobTokenIds) as string[]) : [];
+          return Array.isArray(ids) && ids.length > 0 ? ids[0] : undefined;
+        } catch {
+          return undefined;
+        }
+      })(),
     };
   });
 }

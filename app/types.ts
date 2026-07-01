@@ -13,4 +13,5 @@ export type Market = {
   url: string; // link to the market on its platform
   closeDate: string; // human-readable, may be empty
   liquidity: number; // 0 if unknown
+  clobTokenId?: string; // Polymarket Yes-token id, for price history
 };
