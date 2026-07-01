@@ -8,6 +8,7 @@ import { useState, useMemo, Fragment } from "react";
 import { Market } from "./types";
 import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
+import EventContext from "./EventContext";
 
 type SourceFilter = "all" | "Polymarket" | "Manifold";
 type SortKey = "volume" | "yes" | "move";
@@ -257,6 +258,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                             >
                               View on {m.source} ↗
                             </a>
+                            <EventContext market={m} />
                             {m.source === "Polymarket" && m.clobTokenId && (
                               <PriceChart tokenId={m.clobTokenId} />
                             )}
