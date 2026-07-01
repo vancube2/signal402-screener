@@ -6,6 +6,7 @@
 "use client";
 
 import { Market } from "./types";
+import TrendChart, { TrendPoint } from "./TrendChart";
 
 function fmtMoney(n: number): string {
   if (!n) return "$0";
@@ -15,7 +16,7 @@ function fmtMoney(n: number): string {
   return `$${n.toFixed(0)}`;
 }
 
-export default function Dashboard({ markets }: { markets: Market[] }) {
+export default function Dashboard({ markets, history }: { markets: Market[]; history: TrendPoint[] }) {
   const total = markets.length;
   const realCount = markets.filter((m) => m.realMoney).length;
   const playCount = total - realCount;
@@ -93,6 +94,7 @@ export default function Dashboard({ markets }: { markets: Market[] }) {
           <span className="text-emerald-400/80">{favorites} favorites &gt;75%</span>
         </div>
       </div>
+      <TrendChart history={history} />
     </div>
   );
 }

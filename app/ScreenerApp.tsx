@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { Market } from "./types";
 import MarketTable from "./MarketTable";
 import Dashboard from "./Dashboard";
+import TrendChart, { TrendPoint } from "./TrendChart";
 import { findCrossPlatform } from "./compare";
 
 type View = "screener" | "compare";
@@ -19,9 +20,20 @@ function formatVolume(n: number, realMoney: boolean): string {
   return `${prefix}${n.toFixed(0)}`;
 }
 
+
+function aggregate(markets: Market[]): TrendPoint {
+  const withYes = markets.filter((m) => typeof m.yes === "number" && !isNaN(m.yes));
+  const avgYes = withYes.length
+    ? Math.round(withYes.reduce((s, m) => s + m.yes, 0) / withYes.length)
+    : 0;
+  const volume = markets.reduce((s, m) => s + (m.volume || 0), 0);
+  return { t: Date.now(), avgYes, volume };
+}
+
 export default function ScreenerApp({ markets: initialMarkets }: { markets: Market[] }) {
   const [view, setView] = useState<View>("screener");
   const [markets, setMarkets] = useState<Market[]>(initialMarkets);
+  const [history, setHistory] = useState<TrendPoint[]>(() => [aggregate(initialMarkets)]);
   const [updatedAt, setUpdatedAt] = useState<number>(Date.now());
   const [ago, setAgo] = useState<number>(0);
   const REFRESH_MS = 120000; // 2 minutes
@@ -35,6 +47,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
         if (Array.isArray(data.markets) && data.markets.length > 0) {
           setMarkets(data.markets);
           setUpdatedAt(Date.now());
+          setHistory((h) => [...h, aggregate(data.markets)].slice(-120));
         }
       } catch {
         // keep last good data on failure
@@ -54,7 +67,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
 
   return (
     <div>
-      <Dashboard markets={markets} />
+      <Dashboard markets={markets} history={history} />
       {/* view toggle */}
       <div className="flex gap-1 mb-4">
         {(["screener", "compare"] as View[]).map((v) => (
