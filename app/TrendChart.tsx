@@ -28,13 +28,20 @@ function fmtTime(ms: number): string {
   });
 }
 
+function fmtVol(n: number): string {
+  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`;
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${Math.round(n)}`;
+}
+
 export default function TrendChart({ history }: { history: TrendPoint[] }) {
   // need at least 2 points to draw a line
   if (!history || history.length < 2) {
     return (
       <div className="mt-4">
         <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-600 mb-1.5">
-          board pulse · avg probability over this session
+          board volume · this session
         </div>
         <div className="h-[70px] flex items-center justify-center rounded-md bg-zinc-900/40 font-mono text-[10px] text-zinc-600">
           building… updates every 2 min while open
@@ -46,7 +53,7 @@ export default function TrendChart({ history }: { history: TrendPoint[] }) {
   return (
     <div className="mt-4">
       <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-600 mb-1.5">
-        board pulse · avg probability over this session
+        board volume · this session
       </div>
       <div style={{ width: "100%", height: 120 }}>
         <ResponsiveContainer>
@@ -63,8 +70,8 @@ export default function TrendChart({ history }: { history: TrendPoint[] }) {
               minTickGap={50}
             />
             <YAxis
-              domain={["dataMin - 2", "dataMax + 2"]}
-              tickFormatter={(v) => `${Math.round(v as number)}%`}
+              domain={["dataMin", "dataMax"]}
+              tickFormatter={(v) => fmtVol(v as number)}
               stroke="#52525b"
               tick={{ fontSize: 9, fontFamily: "monospace", fill: "#71717a" }}
               width={42}
@@ -80,11 +87,11 @@ export default function TrendChart({ history }: { history: TrendPoint[] }) {
               labelStyle={{ color: "#a1a1aa" }}
               itemStyle={{ color: "#f5b301" }}
               labelFormatter={(v) => fmtTime(v as number)}
-              formatter={(v: number) => [`${v}%`, "avg yes"]}
+              formatter={(v: number) => [fmtVol(v), "volume"]}
             />
             <Line
               type="monotone"
-              dataKey="avgYes"
+              dataKey="volume"
               stroke="#f5b301"
               strokeWidth={2}
               dot={false}

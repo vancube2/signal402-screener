@@ -7,6 +7,7 @@
 
 import { Market } from "./types";
 import TrendChart, { TrendPoint } from "./TrendChart";
+import MoversStrip from "./MoversStrip";
 
 function fmtMoney(n: number): string {
   if (!n) return "$0";
@@ -94,6 +95,7 @@ export default function Dashboard({ markets, history }: { markets: Market[]; his
           <span className="text-emerald-400/80">{favorites} favorites &gt;75%</span>
         </div>
       </div>
+      <MoversStrip markets={markets} />
       <TrendChart history={history} />
     </div>
   );
