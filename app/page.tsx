@@ -4,6 +4,7 @@
 
 import ScreenerApp from "./ScreenerApp";
 import { Market } from "./types";
+import { getTxlineMarkets } from "./lib/txline";
 
 function fmtDate(input?: string | number): string {
   if (!input) return "";
@@ -157,9 +158,13 @@ async function getManifold(): Promise<Market[]> {
 }
 
 export async function getMarkets(): Promise<Market[]> {
-  const [poly, manifold] = await Promise.all([getPolymarket(), getManifold()]);
+  const [poly, manifold, txline] = await Promise.all([
+    getPolymarket(),
+    getManifold(),
+    getTxlineMarkets().catch(() => []),
+  ]);
   const seen = new Set<string>();
-  const all = [...poly, ...manifold].filter((m) => {
+  const all = [...poly, ...manifold, ...txline].filter((m) => {
     if (seen.has(m.question)) return false;
     seen.add(m.question);
     return true;
@@ -186,7 +191,7 @@ export default async function Home() {
             </span>
           </div>
           <p className="text-zinc-500 text-sm mt-1.5 font-mono">
-            Signal through the noise. {markets.length} markets across 2 sources.
+            Signal through the noise. {markets.length} markets across {new Set(markets.map((m) => m.source)).size} sources.
             You decide.
           </p>
           <div className="flex gap-4 mt-3 font-mono text-xs">

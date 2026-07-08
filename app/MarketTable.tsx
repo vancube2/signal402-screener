@@ -10,7 +10,7 @@ import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
 import EventContext from "./EventContext";
 
-type SourceFilter = "all" | "Polymarket" | "Manifold";
+type SourceFilter = "all" | "Polymarket" | "Manifold" | "TxLINE";
 type SortKey = "volume" | "yes" | "move";
 
 function formatVolume(n: number, realMoney: boolean): string {
@@ -90,7 +90,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
   const sortArrow = (key: SortKey) =>
     sortKey === key ? (sortDesc ? " ↓" : " ↑") : "";
 
-  const tabs: SourceFilter[] = ["all", "Polymarket", "Manifold"];
+  const tabs: SourceFilter[] = ["all", "Polymarket", "Manifold", "TxLINE"];
 
   return (
     <div>
@@ -193,7 +193,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                               : "bg-zinc-700/40 text-zinc-500"
                           }`}
                         >
-                          {m.source === "Polymarket" ? "POLY" : "MANI"}
+                          {m.source === "Polymarket" ? "POLY" : m.source === "Manifold" ? "MANI" : "TXWC"}
                         </span>
                       </td>
                       <td className="px-3 py-2">

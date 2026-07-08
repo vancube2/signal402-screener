@@ -45,7 +45,7 @@ export default function Dashboard({ markets, history }: { markets: Market[]; his
     { label: "markets", value: total.toString(), sub: `${realCount} real · ${playCount} play` },
     { label: "total volume", value: fmtMoney(totalVolume), sub: "across all sources" },
     { label: "avg yes", value: `${avgYes}%`, sub: "board-wide probability" },
-    { label: "sources", value: "2", sub: "Polymarket · Manifold" },
+    { label: "sources", value: String(new Set(markets.map((m) => m.source)).size), sub: [...new Set(markets.map((m) => m.source))].join(" · ") },
   ];
 
   return (

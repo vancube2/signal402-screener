@@ -7,11 +7,13 @@ export type Market = {
   no: number; // -1 if unknown
   move: number | null; // 24h change in percentage points
   volume: number;
-  source: "Polymarket" | "Manifold";
+  source: "Polymarket" | "Manifold" | "TxLINE";
   realMoney: boolean;
   description: string; // may be empty
   url: string; // link to the market on its platform
   closeDate: string; // human-readable, may be empty
   liquidity: number; // 0 if unknown
   clobTokenId?: string; // Polymarket Yes-token id, for price history
+  fixtureId?: string; // TxLINE fixture id, for odds/scores/proofs
+  competitionId?: number; // TxLINE competition id
 };
