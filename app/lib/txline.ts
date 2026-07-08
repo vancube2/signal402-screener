@@ -17,7 +17,7 @@ const JWT_TTL_MS = 24 * 60 * 60 * 1000;
 async function getJwt(): Promise<string> {
   const now = Date.now();
   if (cachedJwt && now - cachedJwt.fetchedAt < JWT_TTL_MS) return cachedJwt.token;
-  const res = await fetch(`${API_ORIGIN}/auth/guest/start`, { method: "POST" });
+  const res = await fetch(`${API_ORIGIN}/auth/guest/start`, { method: "POST", signal: AbortSignal.timeout(4000) });
   if (!res.ok) throw new Error(`guest/start failed: ${res.status}`);
   const data = await res.json();
   cachedJwt = { token: data.token, fetchedAt: now };
@@ -31,6 +31,7 @@ async function txGet<T>(path: string): Promise<T | null> {
     const res = await fetch(`${API_ORIGIN}${path}`, {
       headers: { Authorization: `Bearer ${jwt}`, "X-Api-Token": API_TOKEN },
       next: { revalidate: 30 },
+      signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) return null;
     return (await res.json()) as T;
@@ -148,4 +149,10 @@ export async function getTxlineMarkets(): Promise<Market[]> {
   );
 
   return markets;
+}
+
+
+// ---- Merkle proof (data receipt) for a fixture ----
+export async function getFixtureProof(fixtureId: string): Promise<unknown | null> {
+  return txGet(`/api/fixtures/validation?fixtureId=${encodeURIComponent(fixtureId)}`);
 }

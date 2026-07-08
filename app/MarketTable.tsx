@@ -9,6 +9,7 @@ import { Market } from "./types";
 import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
 import EventContext from "./EventContext";
+import ProofReceipt from "./ProofReceipt";
 
 type SourceFilter = "all" | "Polymarket" | "Manifold" | "TxLINE";
 type SortKey = "volume" | "yes" | "move";
@@ -249,6 +250,8 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                                   : m.description
                                 : "No description provided for this market."}
                             </p>
+
+                            {m.url && (
                             <a
                               href={m.url}
                               target="_blank"
@@ -258,7 +261,11 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                             >
                               View on {m.source} ↗
                             </a>
+                              )}
                             <EventContext market={m} />
+                            {m.source === "TxLINE" && (
+                              <ProofReceipt fixtureId={m.fixtureId} />
+                            )}
                             {m.source === "Polymarket" && m.clobTokenId && (
                               <PriceChart tokenId={m.clobTokenId} />
                             )}
