@@ -66,3 +66,37 @@ Metered data API. The core data stays free at a basic rate. Builders who need hi
 Embeds and white-label fees. Sports media sites, communities, and newsletters that want a live probability widget or the verification receipt embedded in their own pages pay a placement fee per site or per traffic tier. Larger partners who want the whole dashboard under their own brand pay a white-label fee. Again, these are fees for placement and licensing, not subscriptions on the end reader.
 
 The logic is simple. The audience is the asset, so browsing is free and stays neutral. Money comes from the supply side, the markets and sources that want that audience's attention, and from packaged data and access sold by the unit. Because prominence can never be bought, the platform stays trustworthy, which is exactly what keeps the audience coming, which is what makes appearing on it worth paying for.
+
+---
+
+# TxLINE API Builder Feedback
+
+Overall the API was a pleasure to build on. The auth model is well thought out, the data schema is clean and consistent, and the documentation was good enough that I could get from zero to live data in one sitting. Below is what worked well and where I hit friction, in the spirit of helping you tighten it.
+
+## What I liked most
+
+- The single normalised JSON schema is genuinely nice. Fixtures, odds, and scores all share the same identifiers, so joining them was trivial. Once I had a fixture id, everything else keyed off it cleanly.
+
+- The demargined percentages in the odds payload are the standout feature for my use case. Getting the vig-removed implied probability directly, formatted to three decimals, meant I did not have to do any odds conversion or margin removal myself. For a prediction market viewer that is exactly the number I want.
+
+- The free World Cup tier lowered the barrier a lot. Being able to prove the whole flow on devnet with faucet SOL, at zero token cost, made it realistic to attempt this in a hackathon window.
+
+- The separation between a long-lived API token and a short-lived guest JWT is a good design. It let me keep the app stateless and wallet-free in production while still authenticating, which was important for deploying safely.
+
+- The Merkle proof endpoints are a strong differentiator. Having a verifiable receipt for each record, with a clear sub-tree and main-tree structure, made the verifiable-resolution feature straightforward to build against real proof data.
+
+## Where I hit friction
+
+- The auth chain took some trial and error to get exactly right. The activation endpoint path in particular (the `/api` prefix on `token/activate`) was easy to get wrong, and the failure came back as a bare 404 with an empty body, so there was nothing in the response to point me at the fix. A clearer error body on activation failures would save time.
+
+- The exact data endpoint paths were the slowest part to discover. The quickstart covers auth and subscription well, but I had to dig into the API reference page by page to find the precise fixtures, odds, and scores snapshot routes and their parameters. A single consolidated list of the data endpoints, with example responses, near the quickstart would have shortened this a lot.
+
+- On devnet, live odds for future fixtures come and go. A fixture would show a full set of odds rows in one request and an empty array a moment later. I understand this reflects the 60-second sampling and the fact that these are upcoming matches, but it made testing unpredictable, and it means a viewer has to be built to treat missing odds as normal rather than an error. Some guidance in the docs on expected odds availability for scheduled versus live fixtures on devnet would help set expectations.
+
+- I hit an intermittent connection timeout to the devnet host during development, where requests to `txline-dev.txodds.com` hung for the full timeout window before failing. It recovered on its own, but it pushed me to add short client-side timeouts and to isolate the feed so a slow response could not stall the rest of the app. If devnet availability can be made steadier, that would help demos that run live.
+
+- One small schema note: `StartTime` and `Ts` are in milliseconds, which is correct and consistent, but the docs example values did not make the unit obvious, and I briefly treated them as seconds. A one-line note on units in the field descriptions would prevent that.
+
+## Net
+
+None of the friction was blocking. The design decisions are sound and the data is high quality. The two changes that would have saved me the most time are a clearer error body on activation and a single consolidated reference of the data endpoints with sample responses. The demargined percentages and the proof endpoints are the parts I would most want to keep building on.
