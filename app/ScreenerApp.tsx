@@ -37,6 +37,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
   const [updatedAt, setUpdatedAt] = useState<number>(Date.now());
   const [ago, setAgo] = useState<number>(0);
   const [txlineLoading, setTxlineLoading] = useState<boolean>(true);
+  const [txMarkets, setTxMarkets] = useState<Market[]>([]);
 
   // fetch TxLINE World Cup markets client-side so they never block first paint
   useEffect(() => {
@@ -48,14 +49,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
         const data = await res.json();
         const tx: Market[] = Array.isArray(data.markets) ? data.markets : [];
         if (!cancelled && tx.length > 0) {
-          setMarkets((prev) => {
-            const seen = new Set(prev.map((m) => m.question));
-            const merged = [...prev];
-            for (const m of tx) {
-              if (!seen.has(m.question)) merged.push(m);
-            }
-            return merged;
-          });
+          setTxMarkets(tx); // keep TxLINE in its own state; never wiped by refresh
         }
       } catch {
         // TxLINE unavailable - the rest of the app is unaffected
@@ -94,11 +88,17 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
     }, 1000);
     return () => clearInterval(id);
   }, [updatedAt]);
-  const groups = view === "compare" ? findCrossPlatform(markets) : [];
+  // combine Poly/Manifold (refreshed) with TxLINE (separate, sticky) markets
+  const allMarkets = (() => {
+    const seen = new Set(markets.map((m) => m.question));
+    const extra = txMarkets.filter((m) => !seen.has(m.question));
+    return [...markets, ...extra];
+  })();
+  const groups = view === "compare" ? findCrossPlatform(allMarkets) : [];
 
   return (
     <div>
-      <Dashboard markets={markets} history={history} />
+      <Dashboard markets={allMarkets} history={history} />
       {/* view toggle */}
       <div className="flex gap-1 mb-4">
         {(["screener", "compare"] as View[]).map((v) => (
@@ -125,7 +125,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
             <span className="ml-2 text-emerald-400/70">&middot; loading World Cup markets&hellip;</span>
           )}
           </div>
-          <MarketTable markets={markets} />
+          <MarketTable markets={allMarkets} />
         </>
       ) : (
         <div>
