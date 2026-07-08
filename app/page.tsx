@@ -4,7 +4,6 @@
 
 import ScreenerApp from "./ScreenerApp";
 import { Market } from "./types";
-import { getTxlineMarkets } from "./lib/txline";
 
 function fmtDate(input?: string | number): string {
   if (!input) return "";
@@ -158,13 +157,12 @@ async function getManifold(): Promise<Market[]> {
 }
 
 export async function getMarkets(): Promise<Market[]> {
-  const [poly, manifold, txline] = await Promise.all([
+  const [poly, manifold] = await Promise.all([
     getPolymarket(),
     getManifold(),
-    getTxlineMarkets().catch(() => []),
   ]);
   const seen = new Set<string>();
-  const all = [...poly, ...manifold, ...txline].filter((m) => {
+  const all = [...poly, ...manifold].filter((m) => {
     if (seen.has(m.question)) return false;
     seen.add(m.question);
     return true;

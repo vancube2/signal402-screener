@@ -36,6 +36,37 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
   const [history, setHistory] = useState<TrendPoint[]>(() => [aggregate(initialMarkets)]);
   const [updatedAt, setUpdatedAt] = useState<number>(Date.now());
   const [ago, setAgo] = useState<number>(0);
+  const [txlineLoading, setTxlineLoading] = useState<boolean>(true);
+
+  // fetch TxLINE World Cup markets client-side so they never block first paint
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/txline", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        const tx: Market[] = Array.isArray(data.markets) ? data.markets : [];
+        if (!cancelled && tx.length > 0) {
+          setMarkets((prev) => {
+            const seen = new Set(prev.map((m) => m.question));
+            const merged = [...prev];
+            for (const m of tx) {
+              if (!seen.has(m.question)) merged.push(m);
+            }
+            return merged;
+          });
+        }
+      } catch {
+        // TxLINE unavailable - the rest of the app is unaffected
+      } finally {
+        if (!cancelled) setTxlineLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const REFRESH_MS = 120000; // 2 minutes
 
   // periodic quiet refresh
@@ -90,6 +121,9 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
           <div className="mb-2 font-mono text-[10px] text-zinc-600 flex items-center gap-2">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             auto-refreshes every 2 min &middot; updated {ago === 0 ? "just now" : `${ago}s ago`}
+          {txlineLoading && (
+            <span className="ml-2 text-emerald-400/70">&middot; loading World Cup markets&hellip;</span>
+          )}
           </div>
           <MarketTable markets={markets} />
         </>
