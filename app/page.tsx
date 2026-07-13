@@ -33,6 +33,7 @@ type PolymarketMarket = {
   oneDayPriceChange?: number;
   endDate?: string;
   clobTokenIds?: string;
+  conditionId?: string;
 };
 
 async function fetchPolyPage(offset: number): Promise<PolymarketMarket[]> {
@@ -103,12 +104,14 @@ async function getPolymarket(): Promise<Market[]> {
           return undefined;
         }
       })(),
+      conditionId: m.conditionId,
     };
   });
 }
 
 // ---------- Manifold ----------
 type ManifoldMarket = {
+  id?: string;
   question?: string;
   probability?: number;
   volume?: number;
@@ -149,6 +152,7 @@ async function getManifold(): Promise<Market[]> {
           url: m.url ?? "https://manifold.markets",
           closeDate: fmtDate(m.closeTime),
           liquidity: 0,
+          marketId: m.id,
         };
       });
   } catch {

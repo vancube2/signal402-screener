@@ -8,9 +8,10 @@ import { Market } from "./types";
 import MarketTable from "./MarketTable";
 import Dashboard from "./Dashboard";
 import TrendChart, { TrendPoint } from "./TrendChart";
-import { findCrossPlatform } from "./compare";
+import { crossSourceGroups, groupStats } from "./lib/enrich/compareStats";
+import CalibrationView from "./CalibrationView";
 
-type View = "screener" | "compare";
+type View = "screener" | "compare" | "calibration";
 
 function formatVolume(n: number, realMoney: boolean): string {
   const prefix = realMoney ? "$" : "Ṁ";
@@ -94,14 +95,15 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
     const extra = txMarkets.filter((m) => !seen.has(m.question));
     return [...markets, ...extra];
   })();
-  const groups = view === "compare" ? findCrossPlatform(allMarkets) : [];
+  const groups = view === "compare" ? crossSourceGroups(allMarkets) : [];
 
   return (
     <div>
       <Dashboard markets={allMarkets} history={history} />
+      <CalibrationView compact />
       {/* view toggle */}
       <div className="flex gap-1 mb-4">
-        {(["screener", "compare"] as View[]).map((v) => (
+        {(["screener", "compare", "calibration"] as View[]).map((v) => (
           <button
             key={v}
             onClick={() => setView(v)}
@@ -111,12 +113,12 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                 : "bg-zinc-900/80 border-zinc-800 text-zinc-500 hover:text-zinc-300"
             }`}
           >
-            {v === "screener" ? "Screener" : "Compare ⇄"}
+            {v === "screener" ? "Screener" : v === "compare" ? "Compare ⇄" : "Calibration"}
           </button>
         ))}
       </div>
 
-      {view === "screener" ? (
+      {view === "screener" && (
         <>
           <div className="mb-2 font-mono text-[10px] text-zinc-600 flex items-center gap-2">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -127,7 +129,9 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
           </div>
           <MarketTable markets={allMarkets} />
         </>
-      ) : (
+      )}
+
+      {view === "compare" && (
         <div>
           <p className="font-mono text-xs text-zinc-500 mb-4 leading-relaxed max-w-2xl">
             Markets that appear to be about the same question on different
@@ -193,27 +197,50 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                       </div>
                     ))}
                   </div>
-                  {/* spread note when 2+ real-money prices exist */}
+                  {/* divergence + consensus across the matched sources */}
                   {(() => {
-                    const reals = g.markets.filter(
-                      (m) => m.realMoney && m.yes >= 0
-                    );
-                    if (reals.length >= 2) {
-                      const ys = reals.map((m) => m.yes);
-                      const spread = Math.max(...ys) - Math.min(...ys);
-                      return (
-                        <div className="bg-zinc-950/60 px-4 py-2 font-mono text-xs text-zinc-500">
-                          Spread between real-money platforms:{" "}
-                          <span className="text-zinc-300">{spread} pts</span>
+                    const stats = groupStats(g.markets, g.label);
+                    const div = stats.divergence;
+                    const con = stats.consensus;
+                    if (!con) return null;
+                    return (
+                      <div className="bg-zinc-950/60 px-4 py-2.5 font-mono text-xs space-y-1.5">
+                        {div && (
+                          <div>
+                            {div.spreadPts > 0 ? (
+                              <span className="text-zinc-400">
+                                Sources disagree by{" "}
+                                <span className="text-amber-300">{div.spreadPts} pts</span>
+                              </span>
+                            ) : (
+                              <span className="text-zinc-500">Sources agree</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="text-zinc-500">
+                          Blended estimate{" "}
+                          <span className="text-emerald-300">{con.probabilityPct}%</span>
+                          <span className="text-zinc-600">
+                            {" "}(likely {con.bandPct[0]} to {con.bandPct[1]}%)
+                          </span>
                         </div>
-                      );
-                    }
-                    return null;
+                        <div className="text-zinc-700 text-[10px]">
+                          Weighted by liquidity
+                          {stats.hasPlayMoney ? ", play-money down-weighted" : ""}. Not advice.
+                        </div>
+                      </div>
+                    );
                   })()}
                 </div>
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {view === "calibration" && (
+        <div>
+          <CalibrationView />
         </div>
       )}
     </div>

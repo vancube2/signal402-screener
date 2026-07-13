@@ -14,6 +14,8 @@ export type Market = {
   closeDate: string; // human-readable, may be empty
   liquidity: number; // 0 if unknown
   clobTokenId?: string; // Polymarket Yes-token id, for price history
+  marketId?: string; // Manifold contract id, for per-side stake split
+  conditionId?: string; // Polymarket condition id, for top-holder lean
   fixtureId?: string; // TxLINE fixture id, for odds/scores/proofs
   competitionId?: number; // TxLINE competition id
 };

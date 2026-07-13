@@ -1,6 +1,6 @@
 // app/MarketTable.tsx
 // Signal402 - dexscreener-vibe screener table
-// Build 8.1: expandable row detail (fragment key fixed)
+// Build 10: category chips + filter, and an intelligence panel in the expanded row
 
 "use client";
 
@@ -10,9 +10,14 @@ import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
 import EventContext from "./EventContext";
 import ProofReceipt from "./ProofReceipt";
+import IntelPanel from "./IntelPanel";
+import SideSplit from "./SideSplit";
+import { categoriesForMarket } from "./lib/enrich/adapt";
+import type { CategoryId } from "./lib/enrich/types";
 
 type SourceFilter = "all" | "Polymarket" | "Manifold" | "TxLINE";
 type SortKey = "volume" | "yes" | "move";
+type CatFilter = CategoryId | "all";
 
 function formatVolume(n: number, realMoney: boolean): string {
   const prefix = realMoney ? "$" : "Ṁ";
@@ -51,33 +56,53 @@ function ProbBar({ yes }: { yes: number }) {
 export default function MarketTable({ markets }: { markets: Market[] }) {
   const [query, setQuery] = useState("");
   const [source, setSource] = useState<SourceFilter>("all");
+  const [category, setCategory] = useState<CatFilter>("all");
   const [sortKey, setSortKey] = useState<SortKey>("volume");
   const [sortDesc, setSortDesc] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
 
+  // categorize once per market list
+  const enriched = useMemo(
+    () => markets.map((m) => ({ m, cats: categoriesForMarket(m) })),
+    [markets]
+  );
+
+  // categories present in the current source view, with counts, biggest first
+  const catCounts = useMemo(() => {
+    const base = source === "all" ? enriched : enriched.filter((x) => x.m.source === source);
+    const counts = new Map<CategoryId, { label: string; n: number }>();
+    for (const x of base)
+      for (const c of x.cats) {
+        const cur = counts.get(c.id);
+        counts.set(c.id, { label: c.label, n: (cur?.n ?? 0) + 1 });
+      }
+    return [...counts.entries()].sort((a, b) => b[1].n - a[1].n);
+  }, [enriched, source]);
+
   const rows = useMemo(() => {
-    let r = markets;
-    if (source !== "all") r = r.filter((m) => m.source === source);
+    let r = enriched;
+    if (source !== "all") r = r.filter((x) => x.m.source === source);
+    if (category !== "all") r = r.filter((x) => x.cats.some((c) => c.id === category));
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      r = r.filter((m) => m.question.toLowerCase().includes(q));
+      r = r.filter((x) => x.m.question.toLowerCase().includes(q));
     }
     const sorted = [...r].sort((a, b) => {
       let av: number, bv: number;
       if (sortKey === "yes") {
-        av = a.yes;
-        bv = b.yes;
+        av = a.m.yes;
+        bv = b.m.yes;
       } else if (sortKey === "move") {
-        av = a.move ?? -9999;
-        bv = b.move ?? -9999;
+        av = a.m.move ?? -9999;
+        bv = b.m.move ?? -9999;
       } else {
-        av = a.volume;
-        bv = b.volume;
+        av = a.m.volume;
+        bv = b.m.volume;
       }
       return sortDesc ? bv - av : av - bv;
     });
     return sorted;
-  }, [markets, source, query, sortKey, sortDesc]);
+  }, [enriched, source, category, query, sortKey, sortDesc]);
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDesc((d) => !d);
@@ -112,6 +137,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
               key={t}
               onClick={() => {
                 setSource(t);
+                setCategory("all");
                 setExpanded(null);
               }}
               className={`px-3 py-2 rounded text-xs font-mono uppercase tracking-wide border transition-colors ${
@@ -125,6 +151,41 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
           ))}
         </div>
       </div>
+
+      {/* category filter */}
+      {catCounts.length > 0 && (
+        <div className="flex gap-1.5 flex-wrap mb-3">
+          <button
+            onClick={() => {
+              setCategory("all");
+              setExpanded(null);
+            }}
+            className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wide border transition-colors ${
+              category === "all"
+                ? "bg-amber-500/15 border-amber-500/50 text-amber-300"
+                : "bg-zinc-900/60 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+            }`}
+          >
+            all categories
+          </button>
+          {catCounts.map(([id, { label, n }]) => (
+            <button
+              key={id}
+              onClick={() => {
+                setCategory(id);
+                setExpanded(null);
+              }}
+              className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wide border transition-colors ${
+                category === id
+                  ? "bg-amber-500/15 border-amber-500/50 text-amber-300"
+                  : "bg-zinc-900/60 border-zinc-800 text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              {label} <span className="text-zinc-600">{n}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 mb-2 px-1">
         <span className="relative flex h-2 w-2">
@@ -169,7 +230,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((m, i) => {
+              {rows.map(({ m, cats }, i) => {
                 const mv = moveCell(m.move);
                 const isOpen = expanded === i;
                 return (
@@ -185,6 +246,18 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                           {isOpen ? "▾" : "▸"}
                         </span>
                         {m.question}
+                        {cats.length > 0 && (
+                          <span className="flex items-center gap-1 flex-wrap mt-1">
+                            {cats.slice(0, 3).map((c) => (
+                              <span
+                                key={c.id}
+                                className="inline-block px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wide bg-zinc-800/70 text-zinc-400"
+                              >
+                                {c.label}
+                              </span>
+                            ))}
+                          </span>
+                        )}
                       </td>
                       <td className="px-3 py-2">
                         <span
@@ -243,7 +316,12 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                                 </span>
                               )}
                             </div>
-                            <p className="text-zinc-400 text-sm leading-relaxed max-w-3xl mb-3">
+
+                            <IntelPanel market={m} />
+
+                            <SideSplit market={m} />
+
+                            <p className="text-zinc-400 text-sm leading-relaxed max-w-3xl mb-3 mt-3">
                               {m.description
                                 ? m.description.length > 400
                                   ? m.description.slice(0, 400) + "…"
