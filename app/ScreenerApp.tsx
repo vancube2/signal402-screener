@@ -3,13 +3,15 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Market } from "./types";
 import MarketTable from "./MarketTable";
 import Dashboard from "./Dashboard";
-import TrendChart, { TrendPoint } from "./TrendChart";
+import { TrendPoint } from "./TrendChart";
 import { crossSourceGroups, groupStats } from "./lib/enrich/compareStats";
 import CalibrationView from "./CalibrationView";
+import MatchTicker from "./MatchTicker";
+import { Hero } from "./Ambience";
 
 type View = "screener" | "compare" | "calibration";
 
@@ -35,7 +37,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
   const [view, setView] = useState<View>("screener");
   const [markets, setMarkets] = useState<Market[]>(initialMarkets);
   const [history, setHistory] = useState<TrendPoint[]>(() => [aggregate(initialMarkets)]);
-  const [updatedAt, setUpdatedAt] = useState<number>(Date.now());
+  const [updatedAt, setUpdatedAt] = useState<number>(() => Date.now());
   const [ago, setAgo] = useState<number>(0);
   const [txlineLoading, setTxlineLoading] = useState<boolean>(true);
   const [txMarkets, setTxMarkets] = useState<Market[]>([]);
@@ -99,6 +101,8 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
 
   return (
     <div>
+      <Hero markets={allMarkets} />
+      <MatchTicker markets={allMarkets} loading={txlineLoading} />
       <Dashboard markets={allMarkets} history={history} />
       <CalibrationView compact />
       {/* view toggle */}
@@ -109,7 +113,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
             onClick={() => setView(v)}
             className={`px-4 py-2 rounded text-xs font-mono uppercase tracking-wide border transition-colors ${
               view === v
-                ? "bg-amber-500/15 border-amber-500/50 text-amber-300"
+                ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300"
                 : "bg-zinc-900/80 border-zinc-800 text-zinc-500 hover:text-zinc-300"
             }`}
           >
@@ -178,7 +182,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                         <div className="flex items-center gap-6 font-mono text-xs">
                           <span className="text-zinc-500">
                             Yes{" "}
-                            <span className="text-amber-300 tabular-nums">
+                            <span className="text-cyan-300 tabular-nums">
                               {m.yes < 0 ? "—" : `${m.yes}%`}
                             </span>
                           </span>
@@ -189,7 +193,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                             href={m.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-amber-400 hover:text-amber-300 underline underline-offset-2"
+                            className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
                           >
                             view ↗
                           </a>
@@ -210,7 +214,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                             {div.spreadPts > 0 ? (
                               <span className="text-zinc-400">
                                 Sources disagree by{" "}
-                                <span className="text-amber-300">{div.spreadPts} pts</span>
+                                <span className="text-cyan-300">{div.spreadPts} pts</span>
                               </span>
                             ) : (
                               <span className="text-zinc-500">Sources agree</span>

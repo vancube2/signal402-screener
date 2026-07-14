@@ -1,4 +1,4 @@
-import type { NormalizedMarket, Source } from "./types";
+import type { NormalizedMarket } from "./types";
 import type { AlignedPoint, EventKey, MatchedGroup } from "./intel-types";
 
 const TXLINE_WEIGHT = 5000; // odds feed has no volume; treat as a reliable fixed-weight source
@@ -19,7 +19,7 @@ export function eventKeyOf(m: Pick<NormalizedMarket, "question" | "subject">): E
   const lower = q.toLowerCase();
 
   // fixture: "A vs B", "A v B", "Will A beat/defeat B", "A to beat B"
-  let fix =
+  const fix =
     q.match(/^(.+?)\s+(?:vs\.?|v\.?)\s+(.+?)\??$/i) ||
     lower.match(/will\s+(.+?)\s+(?:beat|defeat)\s+(.+?)\??$/i) ||
     lower.match(/^(.+?)\s+to\s+beat\s+(.+?)\??$/i);

@@ -32,10 +32,10 @@ export default function EventContext({ market }: { market: Market }) {
     tone = "text-zinc-500";
   } else if (days === 0) {
     status = "Resolves today";
-    tone = "text-amber-400";
+    tone = "text-cyan-400";
   } else if (days <= 7) {
     status = `Resolves in ${days} day${days === 1 ? "" : "s"}`;
-    tone = "text-amber-400/90";
+    tone = "text-cyan-400/90";
   } else if (days <= 60) {
     status = `Resolves in about ${Math.round(days / 7)} weeks`;
     tone = "text-zinc-400";

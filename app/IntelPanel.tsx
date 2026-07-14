@@ -33,7 +33,7 @@ function SideBox({
       </div>
       <div className="font-mono text-xs text-zinc-300 mt-1">
         risk {money(100, realMoney)} to win{" "}
-        <span className="text-amber-300">{money(toWin, realMoney)}</span>
+        <span className="text-cyan-300">{money(toWin, realMoney)}</span>
       </div>
       <div className="font-mono text-[11px] text-zinc-500 mt-0.5">
         correct <span className="text-emerald-400">+{returnPct}%</span> · wrong{" "}
@@ -57,7 +57,7 @@ export default function IntelPanel({ market }: { market: Market }) {
     trust.band === "high"
       ? "text-emerald-400 border-emerald-500/40"
       : trust.band === "medium"
-        ? "text-amber-300 border-amber-500/40"
+        ? "text-cyan-300 border-cyan-500/40"
         : "text-rose-400 border-rose-500/40";
 
   const res = resolutionInfo({ source: n.source, description: market.description });
@@ -97,7 +97,7 @@ export default function IntelPanel({ market }: { market: Market }) {
       {isTxline && known && (
         <div className="font-mono text-xs text-zinc-500">
           Demargined consensus:{" "}
-          <span className="text-amber-300">{market.yes}%</span> implied. Odds feed, no
+          <span className="text-cyan-300">{market.yes}%</span> implied. Odds feed, no
           participant pool, nothing to stake here.
         </div>
       )}

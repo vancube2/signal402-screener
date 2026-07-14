@@ -100,3 +100,40 @@ Overall the API was a pleasure to build on. The auth model is well thought out, 
 ## Net
 
 None of the friction was blocking. The design decisions are sound and the data is high quality. The two changes that would have saved me the most time are a clearer error body on activation and a single consolidated reference of the data endpoints with sample responses. The demargined percentages and the proof endpoints are the parts I would most want to keep building on.
+
+---
+
+# The intelligence layer (built on top)
+
+Beyond the TxLINE data source and the verifiable receipt, Signal402 grew a full research layer. Every piece computes from real data, and where a number is partial or unavailable it is labelled honestly rather than invented.
+
+## Per-market intelligence
+
+- **Categories.** Markets are auto-tagged (Sports, Politics, Crypto, Economy, Weather, Culture, Science and Tech, Business, World) with word-boundary matching, and can carry more than one tag. Category chips and a category filter make the board navigable.
+- **Payoff math.** For each market, what each side pays: risk-to-win on both Yes and No, the return if right, break-even (the price), and, where a demargined consensus exists, the edge in points versus that consensus. All arithmetic, framed as information, never advice.
+- **Trust score.** A transparent 0-to-100 composite from source reliability, liquidity or volume, holder concentration, age, and spread, with a factor breakdown. Manifold starts lower for its play-money bias. It answers how much to believe the number, not what to do.
+- **Resolution transparency.** Per source: who resolves it and how. Polymarket maps to the UMA optimistic oracle, Manifold to the creator (flagged as not independently verifiable), TxLINE to the on-chain Merkle receipt.
+
+## Cross-source and participation
+
+- **Divergence and consensus (Compare view).** The same event is matched across sources with an event-key matcher (subject plus tournament for sports, with complement handling), then shown side by side with the spread between sources and a liquidity-weighted blended estimate whose confidence band tightens when sources agree. Play money is down-weighted.
+- **Money on each side.** Manifold shows current stake per side (mana) from the positions endpoint. Polymarket shows top-holder lean per side (shares) from the public Data API, which doubles as a smart-money-versus-crowd signal. TxLINE shows nothing to stake, because it is an odds feed.
+
+## Calibration
+
+A Calibration view and a Dashboard summary answer: did markets priced at X% actually resolve Yes about X% of the time? It is computed live from up to 1,000 recently resolved Manifold binary markets, bucketed by decile, with no store and no key, since the platform retains its own resolved-price history. Green rows are well-calibrated, red rows show over- or under-confidence.
+
+## The event copilot
+
+An "ask about this market or event" copilot, server-side so the key never reaches the browser. It applies a deep analytical frame to any event and adapts the angle to the type (sports form and head-to-head, election polling, crypto catalysts, economic indicators, and so on). It uses web search to ground real facts and refuses to invent scores, stats, or results. A hard rule holds throughout: it analyzes and explains, and it never tips a wager, never calls anything value or an edge, and hands the decision back to the user. A structured sports-data provider is wired as an optional, key-gated layer.
+
+## Visuals
+
+A live World Cup ticker driven by the TxLINE fixtures (teams, kickoff, live status, flags), per-market thumbnails (team flags for sports, deterministic category-tinted emblems otherwise), and an original hand-built SVG animation of a stylized striker scoring, in the brand palette. No footage, no real players, no external media, and it respects reduced-motion.
+
+## Honest boundaries
+
+- Polymarket per-side money is a top-holder view (top 20 per side), not the full pot; full totals need an on-chain indexer.
+- Calibration is Manifold-only, from that platform's resolved-price history.
+- Participant counts are wallets or accounts, not verified people.
+- Real-money and play-money volumes are never summed together.

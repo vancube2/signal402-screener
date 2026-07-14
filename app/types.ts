@@ -18,4 +18,9 @@ export type Market = {
   conditionId?: string; // Polymarket condition id, for top-holder lean
   fixtureId?: string; // TxLINE fixture id, for odds/scores/proofs
   competitionId?: number; // TxLINE competition id
+  home?: string; // TxLINE home team
+  away?: string; // TxLINE away team
+  gameState?: string; // TxLINE state label: Live, Scheduled, Finished
+  inRunning?: boolean; // TxLINE match currently in play
+  startTime?: number; // TxLINE kickoff epoch ms
 };

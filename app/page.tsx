@@ -3,6 +3,7 @@
 // Build 9: add cross-platform Compare view (framework, ready for more sources)
 
 import ScreenerApp from "./ScreenerApp";
+import { AmbientBackdrop } from "./Ambience";
 import { Market } from "./types";
 
 function fmtDate(input?: string | number): string {
@@ -180,14 +181,17 @@ export default async function Home() {
   const realCount = markets.filter((m) => m.realMoney).length;
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <main className="relative min-h-screen bg-zinc-950 text-zinc-100">
+      <AmbientBackdrop />
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         <header className="mb-6 border-b border-zinc-800/80 pb-5">
           <div className="flex items-baseline gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight">
-              <span className="text-amber-400">signal</span>
-              <span className="text-zinc-500 font-mono">402</span>
-            </h1>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/signal402-wordmark.png"
+              alt="Signal402"
+              className="h-9 sm:h-10 w-auto"
+            />
             <span className="font-mono text-xs text-zinc-600 uppercase tracking-widest">
               prediction market screener
             </span>

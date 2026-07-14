@@ -24,14 +24,12 @@ function fmtDate(ms: number): string {
 
 export default function PriceChart({ tokenId }: { tokenId?: string }) {
   const [series, setSeries] = useState<Point[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!tokenId);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     if (!tokenId) return;
     let cancelled = false;
-    setLoading(true);
-    setFailed(false);
     fetch(`/api/history?token=${encodeURIComponent(tokenId)}&interval=1w`)
       .then((r) => r.json())
       .then((d) => {

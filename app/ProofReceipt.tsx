@@ -123,7 +123,7 @@ export default function ProofReceipt({ fixtureId }: { fixtureId?: string }) {
                       <span
                         className={
                           node.isRightSibling
-                            ? "text-amber-400/70 w-4"
+                            ? "text-cyan-400/70 w-4"
                             : "text-sky-400/70 w-4"
                         }
                         title={node.isRightSibling ? "right sibling" : "left sibling"}

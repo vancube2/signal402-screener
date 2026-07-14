@@ -17,7 +17,7 @@ const JWT_TTL_MS = 24 * 60 * 60 * 1000;
 async function getJwt(): Promise<string> {
   const now = Date.now();
   if (cachedJwt && now - cachedJwt.fetchedAt < JWT_TTL_MS) return cachedJwt.token;
-  const res = await fetch(`${API_ORIGIN}/auth/guest/start`, { method: "POST", signal: AbortSignal.timeout(4000) });
+  const res = await fetch(`${API_ORIGIN}/auth/guest/start`, { method: "POST", signal: AbortSignal.timeout(6000) });
   if (!res.ok) throw new Error(`guest/start failed: ${res.status}`);
   const data = await res.json();
   cachedJwt = { token: data.token, fetchedAt: now };
@@ -31,7 +31,7 @@ async function txGet<T>(path: string): Promise<T | null> {
     const res = await fetch(`${API_ORIGIN}${path}`, {
       headers: { Authorization: `Bearer ${jwt}`, "X-Api-Token": API_TOKEN },
       next: { revalidate: 30 },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return null;
     return (await res.json()) as T;
@@ -112,9 +112,11 @@ function gameStateLabel(scores: TxScore[] | null): string {
 }
 
 // ---- main: fixtures -> markets, enriched with odds + game state ----
+let lastGoodTxline: Market[] | null = null;
+
 export async function getTxlineMarkets(): Promise<Market[]> {
   const fixtures = await txGet<TxFixture[]>("/api/fixtures/snapshot");
-  if (!fixtures || fixtures.length === 0) return [];
+  if (!fixtures || fixtures.length === 0) return lastGoodTxline ?? [];
 
   // fetch odds + scores per fixture in parallel (bounded)
   const markets = await Promise.all(
@@ -126,6 +128,7 @@ export async function getTxlineMarkets(): Promise<Market[]> {
       const yes = homeImpliedPct(odds);
       const state = gameStateLabel(scores);
       const stateSuffix = state ? ` · ${state}` : "";
+      const inRunning = state === "Live" || (odds?.some((o) => o.InRunning) ?? false);
 
       const m: Market = {
         question: `${f.Participant1} vs ${f.Participant2}`,
@@ -143,11 +146,17 @@ export async function getTxlineMarkets(): Promise<Market[]> {
         liquidity: 0,
         fixtureId: String(f.FixtureId),
         competitionId: f.CompetitionId,
+        home: f.Participant1,
+        away: f.Participant2,
+        gameState: state,
+        inRunning,
+        startTime: f.StartTime,
       };
       return m;
     })
   );
 
+  if (markets.length > 0) lastGoodTxline = markets;
   return markets;
 }
 
