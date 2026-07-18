@@ -42,3 +42,9 @@ next-env.d.ts
 SHA256SUMS*
 SHA256SUMS*
 SHA256SUMS*
+
+# repo snapshots / review dumps (not part of the app)
+*.txt
+*.tar.gz
+review/
+SHA256SUMS*
