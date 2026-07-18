@@ -207,7 +207,11 @@ export default async function Home() {
   </p>
 
   <div className="mt-6 flex flex-wrap gap-3">
-    <span className="rounded-full bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+      <span
+        className="s402-anim h-2 w-2 rounded-full bg-emerald-400"
+        style={{ animation: "s402heartbeat 2s ease-in-out infinite" }}
+      ></span>
       LIVE DATA
     </span>
 

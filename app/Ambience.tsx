@@ -70,6 +70,10 @@ const KEYFRAMES = `
   0%,100%{transform:translate(0,0);opacity:.55}
   50%{transform:translate(3%,-2%);opacity:.9}
 }
+@keyframes s402heartbeat{
+  0%,100%{opacity:.5;box-shadow:0 0 0 0 rgba(52,211,153,0)}
+  50%{opacity:1;box-shadow:0 0 8px 1px rgba(52,211,153,.55)}
+}
 @media (prefers-reduced-motion: reduce){
   .s402-anim{animation:none!important}
   .s402-pulse{opacity:0!important}
