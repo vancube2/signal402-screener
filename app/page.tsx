@@ -193,12 +193,12 @@ export default async function Home() {
     />
 
     <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-xs font-semibold tracking-wider text-emerald-300">
-      TRUSTED SPORTS INTELLIGENCE
+      TRUSTED PREDICTION INTELLIGENCE
     </span>
   </div>
 
   <h1 className="mt-6 text-4xl font-bold tracking-tight text-white" style={{ animation: "s402rise .5s ease-out 0.1s both" }}>
-    Real-time sports intelligence powered by TxLINE.
+    Real-time prediction intelligence powered by TxLINE.
   </h1>
 
   <p className="mt-4 max-w-3xl text-zinc-400 leading-7" style={{ animation: "s402rise .5s ease-out 0.2s both" }}>
@@ -228,18 +228,12 @@ export default async function Home() {
     </span>
   </div>
 
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8" style={{ animation: "s402rise .5s ease-out 0.4s both" }}>
+  <div className="grid grid-cols-3 gap-4 mt-8" style={{ animation: "s402rise .5s ease-out 0.4s both" }}>
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
       <div className="text-xs uppercase text-zinc-500">Markets</div>
       <div className="mt-2 text-2xl font-bold">{markets.length}</div>
     </div>
 
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
-      <div className="text-xs uppercase text-zinc-500">Sources</div>
-      <div className="mt-2 text-2xl font-bold">
-        {new Set(markets.map((m) => m.source)).size}
-      </div>
-    </div>
 
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
       <div className="text-xs uppercase text-zinc-500">Status</div>
