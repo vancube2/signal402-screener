@@ -12,6 +12,7 @@ import PriceChart from "./PriceChart";
 import EventContext from "./EventContext";
 import ProofReceipt from "./ProofReceipt";
 import Replay from "./Replay";
+import Investigate from "./Investigate";
 import IntelPanel from "./IntelPanel";
 import SideSplit from "./SideSplit";
 import MarketThumb from "./MarketThumb";
@@ -430,6 +431,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                               <PriceChart tokenId={m.clobTokenId} />
                             )}
                             <Replay market={m} />
+                            <Investigate market={m} peers={markets} />
                             <Replay market={m} />
                             <Copilot market={m} />
                           </div>
