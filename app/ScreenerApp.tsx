@@ -156,8 +156,31 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                   key={gi}
                   className="rounded-lg border border-zinc-800/80 overflow-hidden"
                 >
-                  <div className="bg-zinc-900/90 px-4 py-2.5 text-zinc-200 text-sm leading-snug">
-                    {g.label}
+                  <div className="bg-zinc-900/90 px-4 py-2.5 flex items-start justify-between gap-3">
+                    <span className="text-zinc-200 text-sm leading-snug">{g.label}</span>
+                    {(() => {
+                      const sp = groupStats(g.markets, g.label).divergence?.spreadPts ?? 0;
+                      if (sp >= 5) {
+                        const strong = sp >= 12;
+                        return (
+                          <span
+                            className={`shrink-0 inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-mono text-[10px] uppercase tracking-wide border ${
+                              strong
+                                ? "border-amber-500/50 bg-amber-500/10 text-amber-300"
+                                : "border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+                            }`}
+                            title="Observable gap between sources on the same market. Not a prediction or advice."
+                          >
+                            ⇄ {sp} pt gap
+                          </span>
+                        );
+                      }
+                      return (
+                        <span className="shrink-0 inline-flex items-center rounded-full px-2 py-1 font-mono text-[10px] uppercase tracking-wide border border-zinc-700 bg-zinc-800/40 text-zinc-500">
+                          aligned
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="divide-y divide-zinc-800/60">
                     {g.markets.map((m, mi) => (
@@ -173,7 +196,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                                 : "bg-zinc-700/40 text-zinc-500"
                             }`}
                           >
-                            {m.source === "Polymarket" ? "POLY" : "MANI"}
+                            {m.source === "Polymarket" ? "POLY" : m.source === "Manifold" ? "MANI" : "TXWC"}
                           </span>
                           <span className="font-mono text-xs text-zinc-500">
                             {m.realMoney ? "real" : "play"}
