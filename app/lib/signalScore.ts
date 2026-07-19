@@ -42,7 +42,11 @@ function logNorm(value: number, ceiling: number): number {
   return Math.max(0, Math.min(1, v / c));
 }
 
-export function signalScore(m: Market, allMarkets?: Market[]): SignalResult {
+export function signalScore(
+  m: Market,
+  allMarkets?: Market[],
+  disagreementIndex?: Map<string, Market[]>
+): SignalResult {
   const reasons: string[] = [];
   let score = 0;
 
@@ -82,23 +86,28 @@ export function signalScore(m: Market, allMarkets?: Market[]): SignalResult {
 
   // 5. Cross-market disagreement: if the same question appears on another source
   //    with a meaningfully different implied probability, that gap is a real,
-  //    observable signal worth surfacing. Only applies where a match exists.
-  if (allMarkets && m.yes >= 0) {
-    const other = allMarkets.find(
-      (x) =>
-        x !== m &&
-        x.source !== m.source &&
-        x.yes >= 0 &&
-        sameQuestion(x.question, m.question)
-    );
+  //    observable signal worth surfacing. Uses a prebuilt index for O(1) lookup.
+  if (m.yes >= 0) {
+    const key = normKey(m.question);
+    const peers = disagreementIndex?.get(key);
+    let other: Market | undefined;
+    if (peers) {
+      other = peers.find((x) => x !== m && x.source !== m.source && x.yes >= 0);
+    } else if (allMarkets) {
+      other = allMarkets.find(
+        (x) =>
+          x !== m &&
+          x.source !== m.source &&
+          x.yes >= 0 &&
+          sameQuestion(x.question, m.question)
+      );
+    }
     if (other) {
       const gap = Math.abs(other.yes - m.yes);
       if (gap >= 5) {
         const gapNorm = Math.min(1, gap / 25);
         score += gapNorm * 18;
-        reasons.push(
-          `${gap.toFixed(0)} pt gap vs ${other.source}`
-        );
+        reasons.push(`${gap.toFixed(0)} pt gap vs ${other.source}`);
       }
     }
   }
@@ -106,6 +115,24 @@ export function signalScore(m: Market, allMarkets?: Market[]): SignalResult {
   score = Math.round(Math.max(0, Math.min(100, score)));
   const band = bandFor(score);
   return { score, band, label: BANDS[band].label, reasons };
+}
+
+// normalized key for question matching
+export function normKey(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9 ]/g, "").trim();
+}
+
+// build a question -> markets index once, so disagreement lookup is O(1) per market
+export function buildDisagreementIndex(markets: Market[]): Map<string, Market[]> {
+  const idx = new Map<string, Market[]>();
+  for (const m of markets) {
+    if (m.yes < 0) continue;
+    const k = normKey(m.question);
+    const arr = idx.get(k) ?? [];
+    arr.push(m);
+    idx.set(k, arr);
+  }
+  return idx;
 }
 
 // loose match: same question text ignoring case and trailing punctuation.

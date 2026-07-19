@@ -5,7 +5,7 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect, Fragment } from "react";
-import { signalScore, BAND_COLOR } from "./lib/signalScore";
+import { signalScore, BAND_COLOR, buildDisagreementIndex } from "./lib/signalScore";
 import { Market } from "./types";
 import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
@@ -76,7 +76,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
     const prev = prevRef.current;
     const changed: string[] = [];
     for (const m of markets) {
-      const sig = signalScore(m, markets);
+      const sig = signalScore(m, markets, disagreementIndex);
       const key = m.question;
       const before = prev.get(key);
       if (before) {
@@ -102,9 +102,10 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
 
 
   // categorize once per market list
+  const disagreementIndex = useMemo(() => buildDisagreementIndex(markets), [markets]);
   const enriched = useMemo(
-    () => markets.map((m) => ({ m, cats: categoriesForMarket(m), sig: signalScore(m, markets) })),
-    [markets]
+    () => markets.map((m) => ({ m, cats: categoriesForMarket(m), sig: signalScore(m, markets, disagreementIndex) })),
+    [markets, disagreementIndex]
   );
 
   // categories present in the current source view, with counts, biggest first
