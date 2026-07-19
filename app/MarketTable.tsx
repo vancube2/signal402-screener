@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo, useRef, useEffect, Fragment } from "react";
 import { signalScore, BAND_COLOR } from "./lib/signalScore";
 import { Market } from "./types";
 import Copilot from "./Copilot";
@@ -62,6 +62,44 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
   const [sortKey, setSortKey] = useState<SortKey>("volume");
   const [sortDesc, setSortDesc] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
+
+  // Event-driven row glow: remember each market's last-seen yes / volume / signal
+  // band, and when a refresh changes one past a threshold, glow that row once.
+  // First load seeds the map without glowing anything.
+  const prevRef = useRef<Map<string, { yes: number; vol: number; band: string }>>(
+    new Map()
+  );
+  const seededRef = useRef(false);
+  const [glowing, setGlowing] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const prev = prevRef.current;
+    const changed: string[] = [];
+    for (const m of markets) {
+      const sig = signalScore(m, markets);
+      const key = m.question;
+      const before = prev.get(key);
+      if (before) {
+        const yesMoved =
+          m.yes >= 0 && before.yes >= 0 && Math.abs(m.yes - before.yes) >= 2;
+        const volSpiked =
+          before.vol > 0 && m.volume > before.vol * 1.25 && m.volume - before.vol > 1000;
+        const bandChanged = sig.band !== before.band;
+        if (yesMoved || volSpiked || bandChanged) changed.push(key);
+      }
+      prev.set(key, { yes: m.yes, vol: m.volume, band: sig.band });
+    }
+    // do not glow anything on the very first population
+    if (!seededRef.current) {
+      seededRef.current = true;
+      return;
+    }
+    if (changed.length === 0) return;
+    setGlowing(new Set(changed));
+    const t = setTimeout(() => setGlowing(new Set()), 1300);
+    return () => clearTimeout(t);
+  }, [markets]);
+
 
   // categorize once per market list
   const enriched = useMemo(
@@ -209,6 +247,10 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
         </p>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-zinc-800/80">
+          <style dangerouslySetInnerHTML={{ __html: `
+@keyframes s402rowglow{0%{background-color:rgba(52,211,153,.30);box-shadow:inset 0 0 0 1px rgba(52,211,153,.45)}70%{background-color:rgba(52,211,153,.12)}100%{background-color:transparent;box-shadow:none}}
+@media (prefers-reduced-motion: reduce){.s402rowglow{animation:none!important}}
+` }} />
           <table className="w-full text-left text-sm border-collapse">
             <thead>
               <tr className="bg-zinc-900/90 text-zinc-500 font-mono text-xs uppercase tracking-wider">
@@ -251,7 +293,12 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                       onClick={() => setExpanded(isOpen ? null : i)}
                       className={`border-t border-zinc-800/60 cursor-pointer transition-colors ${
                         isOpen ? "bg-zinc-900/80" : "hover:bg-zinc-900/60"
-                      }`}
+                      } ${glowing.has(m.question) ? "s402rowglow" : ""}`}
+                      style={
+                        glowing.has(m.question)
+                          ? { animation: "s402rowglow 1.4s ease-out" }
+                          : undefined
+                      }
                     >
                       <td className="px-3 py-2 max-w-md text-zinc-200 leading-snug">
                         <div className="flex items-start gap-2">
