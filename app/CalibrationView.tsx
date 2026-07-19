@@ -61,8 +61,8 @@ export default function CalibrationView({ compact = false }: { compact?: boolean
           Calibration · Manifold resolved
         </div>
         <p className="font-mono text-xs text-zinc-400 mt-1">
-          Across <span className="text-cyan-300">{n}</span> resolved markets, prices missed the
-          real outcome rate by <span className="text-cyan-300">{err} pts</span> on average.
+          Across <span className="text-emerald-300">{n}</span> resolved markets, prices missed the
+          real outcome rate by <span className="text-emerald-300">{err} pts</span> on average.
         </p>
         <p className="font-mono text-[10px] text-zinc-600 mt-0.5">
           Open the Calibration tab for the full predicted-vs-actual chart.
@@ -103,7 +103,7 @@ export default function CalibrationView({ compact = false }: { compact?: boolean
           const actual = b.actualPct ?? 0;
           const gap = Math.abs(actual - b.predictedPct);
           const barColor =
-            gap <= 8 ? "bg-emerald-500/70" : gap <= 18 ? "bg-cyan-400/70" : "bg-rose-500/70";
+            gap <= 8 ? "bg-emerald-500/70" : gap <= 18 ? "bg-amber-400/70" : "bg-rose-500/70";
           return (
             <div
               key={b.bucket}

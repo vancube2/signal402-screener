@@ -57,7 +57,7 @@ export default function Dashboard({ markets, history }: { markets: Market[]; his
             <div className="font-mono text-[10px] uppercase tracking-wider text-zinc-600">
               {t.label}
             </div>
-            <div className="font-mono text-xl font-bold text-cyan-400 mt-0.5">
+            <div className="font-mono text-xl font-bold text-emerald-400 mt-0.5">
               {t.value}
             </div>
             <div className="font-mono text-[10px] text-zinc-600 mt-0.5">

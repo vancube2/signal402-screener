@@ -43,11 +43,11 @@ function ProbBar({ yes }: { yes: number }) {
     <div className="flex items-center gap-2">
       <div className="w-16 h-2 rounded-full bg-zinc-800 overflow-hidden">
         <div
-          className="h-full rounded-full bg-cyan-400"
+          className="h-full rounded-full bg-emerald-400"
           style={{ width: `${Math.max(3, yes)}%` }}
         />
       </div>
-      <span className="font-mono text-xs tabular-nums text-cyan-300 w-9 text-right">
+      <span className="font-mono text-xs tabular-nums text-emerald-300 w-9 text-right">
         {yes}%
       </span>
     </div>
@@ -130,7 +130,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
             setExpanded(null);
           }}
           placeholder="Search markets…  e.g. world cup, election, bitcoin"
-          className="flex-1 px-3 py-2 rounded bg-zinc-900/80 border border-zinc-800 text-zinc-100 placeholder-zinc-600 font-mono text-sm focus:outline-none focus:border-cyan-500/60"
+          className="flex-1 px-3 py-2 rounded bg-zinc-900/80 border border-zinc-800 text-zinc-100 placeholder-zinc-600 font-mono text-sm focus:outline-none focus:border-emerald-500/60"
         />
         <div className="flex gap-1">
           {tabs.map((t) => (
@@ -143,7 +143,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
               }}
               className={`px-3 py-2 rounded text-xs font-mono uppercase tracking-wide border transition-colors ${
                 source === t
-                  ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300"
+                  ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
                   : "bg-zinc-900/80 border-zinc-800 text-zinc-500 hover:text-zinc-300"
               }`}
             >
@@ -163,7 +163,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
             }}
             className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wide border transition-colors ${
               category === "all"
-                ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300"
+                ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
                 : "bg-zinc-900/60 border-zinc-800 text-zinc-500 hover:text-zinc-300"
             }`}
           >
@@ -178,7 +178,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
               }}
               className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wide border transition-colors ${
                 category === id
-                  ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300"
+                  ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
                   : "bg-zinc-900/60 border-zinc-800 text-zinc-500 hover:text-zinc-300"
               }`}
             >
@@ -211,19 +211,19 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                 <th className="px-3 py-2.5 font-medium">Market</th>
                 <th className="px-3 py-2.5 font-medium">Src</th>
                 <th
-                  className="px-3 py-2.5 font-medium cursor-pointer hover:text-cyan-300 select-none"
+                  className="px-3 py-2.5 font-medium cursor-pointer hover:text-emerald-300 select-none"
                   onClick={() => toggleSort("yes")}
                 >
                   Crowd{sortArrow("yes")}
                 </th>
                 <th
-                  className="px-3 py-2.5 font-medium text-right cursor-pointer hover:text-cyan-300 select-none"
+                  className="px-3 py-2.5 font-medium text-right cursor-pointer hover:text-emerald-300 select-none"
                   onClick={() => toggleSort("move")}
                 >
                   24h{sortArrow("move")}
                 </th>
                 <th
-                  className="px-3 py-2.5 font-medium text-right cursor-pointer hover:text-cyan-300 select-none"
+                  className="px-3 py-2.5 font-medium text-right cursor-pointer hover:text-emerald-300 select-none"
                   onClick={() => toggleSort("volume")}
                 >
                   Vol{sortArrow("volume")}
@@ -293,11 +293,11 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                     {isOpen && (
                       <tr className="bg-zinc-900/40">
                         <td colSpan={5} className="px-3 pb-4 pt-1">
-                          <div className="border-l-2 border-cyan-500/40 pl-4 ml-1">
+                          <div className="border-l-2 border-emerald-500/40 pl-4 ml-1">
                             <div className="flex gap-6 mb-3 font-mono text-xs flex-wrap">
                               <span className="text-zinc-500">
                                 Yes{" "}
-                                <span className="text-cyan-300">
+                                <span className="text-emerald-300">
                                   {m.yes < 0 ? "—" : `${m.yes}%`}
                                 </span>
                               </span>
@@ -343,7 +343,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="inline-block font-mono text-xs text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
+                              className="inline-block font-mono text-xs text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
                             >
                               View on {m.source} ↗
                             </a>

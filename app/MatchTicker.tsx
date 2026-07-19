@@ -50,7 +50,7 @@ export default function MatchTicker({ markets, loading = false }: { markets: Mar
     if (loading) {
       return (
         <div className="mb-4 rounded-lg border border-zinc-800/80 bg-zinc-900/40 px-3 py-2 flex items-center gap-2">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           <span className="font-mono text-[10px] uppercase tracking-wider text-zinc-500">
             Loading World Cup matches…
           </span>
@@ -64,7 +64,7 @@ export default function MatchTicker({ markets, loading = false }: { markets: Mar
     return (
       <button
         onClick={() => setHidden(false)}
-        className="mb-4 px-3 py-1.5 rounded text-[10px] font-mono uppercase tracking-wide border border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:text-cyan-300"
+        className="mb-4 px-3 py-1.5 rounded text-[10px] font-mono uppercase tracking-wide border border-zinc-800 bg-zinc-900/60 text-zinc-500 hover:text-emerald-300"
       >
         ▸ Show World Cup ticker
       </button>
@@ -84,7 +84,7 @@ export default function MatchTicker({ markets, loading = false }: { markets: Mar
         }}
       />
       <div className="flex items-center justify-between px-3 py-1 border-b border-zinc-800/60">
-        <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-300">
+        <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-300">
           World Cup 2026 · live board
         </span>
         <button
@@ -114,7 +114,7 @@ export default function MatchTicker({ markets, loading = false }: { markets: Mar
               <span className="text-zinc-200">{m.away}</span>
               <Flag name={m.away as string} />
               {m.yes >= 0 && (
-                <span className="text-cyan-300">{m.yes}%</span>
+                <span className="text-emerald-300">{m.yes}%</span>
               )}
               {m.inRunning && <span className="text-emerald-400 text-[10px]">LIVE</span>}
               <span className="text-zinc-800">·</span>

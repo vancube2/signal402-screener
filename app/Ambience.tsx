@@ -135,7 +135,6 @@ function PulseNetwork({ dur, dim }: { dur: number; dim: number }) {
             className="s402-anim"
             style={
               {
-                // @ts-expect-error CSS custom property
                 "--r": `${n.r}px`,
                 transformOrigin: `${n.x}px ${n.y}px`,
                 animation: `s402node ${6 + (i % 4)}s ease-in-out ${i * 0.4}s infinite`,
@@ -180,7 +179,6 @@ function PulseNetwork({ dur, dim }: { dur: number; dim: number }) {
                 r="1.8"
                 fill="url(#s402pg)"
                 style={{
-                  // @ts-expect-error offsetPath is valid CSS
                   offsetPath: path,
                   offsetRotate: "0deg",
                   animation: `s402pulse ${dur}s linear ${delay}s infinite`,

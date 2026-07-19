@@ -113,7 +113,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
             onClick={() => setView(v)}
             className={`px-4 py-2 rounded text-xs font-mono uppercase tracking-wide border transition-colors ${
               view === v
-                ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300"
+                ? "bg-emerald-500/15 border-emerald-500/50 text-emerald-300"
                 : "bg-zinc-900/80 border-zinc-800 text-zinc-500 hover:text-zinc-300"
             }`}
           >
@@ -182,7 +182,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                         <div className="flex items-center gap-6 font-mono text-xs">
                           <span className="text-zinc-500">
                             Yes{" "}
-                            <span className="text-cyan-300 tabular-nums">
+                            <span className="text-emerald-300 tabular-nums">
                               {m.yes < 0 ? "—" : `${m.yes}%`}
                             </span>
                           </span>
@@ -193,7 +193,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                             href={m.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2"
+                            className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
                           >
                             view ↗
                           </a>
@@ -214,7 +214,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
                             {div.spreadPts > 0 ? (
                               <span className="text-zinc-400">
                                 Sources disagree by{" "}
-                                <span className="text-cyan-300">{div.spreadPts} pts</span>
+                                <span className="text-emerald-300">{div.spreadPts} pts</span>
                               </span>
                             ) : (
                               <span className="text-zinc-500">Sources agree</span>

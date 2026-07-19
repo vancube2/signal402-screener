@@ -215,7 +215,7 @@ export default async function Home() {
       LIVE DATA
     </span>
 
-    <span className="rounded-full bg-sky-500/10 px-3 py-2 text-sm text-sky-300">
+    <span className="rounded-full bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
       TxLINE
     </span>
 
