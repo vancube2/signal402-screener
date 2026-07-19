@@ -11,6 +11,7 @@ import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
 import EventContext from "./EventContext";
 import ProofReceipt from "./ProofReceipt";
+import Replay from "./Replay";
 import IntelPanel from "./IntelPanel";
 import SideSplit from "./SideSplit";
 import MarketThumb from "./MarketThumb";
@@ -428,6 +429,8 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                             {m.source === "Polymarket" && m.clobTokenId && (
                               <PriceChart tokenId={m.clobTokenId} />
                             )}
+                            <Replay market={m} />
+                            <Replay market={m} />
                             <Copilot market={m} />
                           </div>
                         </td>
