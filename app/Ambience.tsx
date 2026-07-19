@@ -74,6 +74,7 @@ const KEYFRAMES = `
   0%,100%{opacity:.5;box-shadow:0 0 0 0 rgba(52,211,153,0)}
   50%{opacity:1;box-shadow:0 0 8px 1px rgba(52,211,153,.55)}
 }
+@keyframes s402rise{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
 @media (prefers-reduced-motion: reduce){
   .s402-anim{animation:none!important}
   .s402-pulse{opacity:0!important}

@@ -185,7 +185,7 @@ export default async function Home() {
       <AmbientBackdrop />
       <div className="relative z-10 max-w-6xl mx-auto px-4 py-8">
         <header className="mb-8 border-b border-zinc-800/80 pb-8">
-  <div className="flex items-center gap-4 flex-wrap">
+  <div className="flex items-center gap-4 flex-wrap" style={{ animation: "s402rise .5s ease-out 0.0s both" }}>
     <img
       src="/signal402-wordmark.png"
       alt="Signal402"
@@ -197,16 +197,16 @@ export default async function Home() {
     </span>
   </div>
 
-  <h1 className="mt-6 text-4xl font-bold tracking-tight text-white">
+  <h1 className="mt-6 text-4xl font-bold tracking-tight text-white" style={{ animation: "s402rise .5s ease-out 0.1s both" }}>
     Real-time sports intelligence powered by TxLINE.
   </h1>
 
-  <p className="mt-4 max-w-3xl text-zinc-400 leading-7">
+  <p className="mt-4 max-w-3xl text-zinc-400 leading-7" style={{ animation: "s402rise .5s ease-out 0.2s both" }}>
     Compare prediction markets across sources, track how odds move
     with grounded AI, and verify match data with cryptographic proofs.
   </p>
 
-  <div className="mt-6 flex flex-wrap gap-3">
+  <div className="mt-6 flex flex-wrap gap-3" style={{ animation: "s402rise .5s ease-out 0.3s both" }}>
     <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
       <span
         className="s402-anim h-2 w-2 rounded-full bg-emerald-400"
@@ -228,7 +228,7 @@ export default async function Home() {
     </span>
   </div>
 
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8" style={{ animation: "s402rise .5s ease-out 0.4s both" }}>
     <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4">
       <div className="text-xs uppercase text-zinc-500">Markets</div>
       <div className="mt-2 text-2xl font-bold">{markets.length}</div>
