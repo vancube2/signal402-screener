@@ -5,6 +5,7 @@
 "use client";
 
 import { useState, useMemo, Fragment } from "react";
+import { signalScore, BAND_COLOR } from "./lib/signalScore";
 import { Market } from "./types";
 import Copilot from "./Copilot";
 import PriceChart from "./PriceChart";
@@ -233,6 +234,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
             <tbody>
               {rows.map(({ m, cats }, i) => {
                 const mv = moveCell(m.move);
+                const sig = signalScore(m, markets);
                 const isOpen = expanded === i;
                 return (
                   <Fragment key={i}>
@@ -244,6 +246,11 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                     >
                       <td className="px-3 py-2 max-w-md text-zinc-200 leading-snug">
                         <div className="flex items-start gap-2">
+                          <span
+                            className="mt-1.5 h-2 w-2 rounded-full shrink-0"
+                            style={{ backgroundColor: BAND_COLOR[sig.band] }}
+                            title={`Signal ${sig.score}/100 · ${sig.label}${sig.reasons.length ? " · " + sig.reasons.join(", ") : ""}`}
+                          />
                           <span className="text-zinc-600 font-mono text-xs mt-1">
                             {isOpen ? "▾" : "▸"}
                           </span>
