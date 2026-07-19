@@ -18,7 +18,7 @@ import { categoriesForMarket } from "./lib/enrich/adapt";
 import type { CategoryId } from "./lib/enrich/types";
 
 type SourceFilter = "all" | "Polymarket" | "Manifold" | "TxLINE";
-type SortKey = "volume" | "yes" | "move";
+type SortKey = "volume" | "yes" | "move" | "signal";
 type CatFilter = CategoryId | "all";
 
 function formatVolume(n: number, realMoney: boolean): string {
@@ -65,7 +65,7 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
 
   // categorize once per market list
   const enriched = useMemo(
-    () => markets.map((m) => ({ m, cats: categoriesForMarket(m) })),
+    () => markets.map((m) => ({ m, cats: categoriesForMarket(m), sig: signalScore(m, markets) })),
     [markets]
   );
 
@@ -97,6 +97,9 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
       } else if (sortKey === "move") {
         av = a.m.move ?? -9999;
         bv = b.m.move ?? -9999;
+      } else if (sortKey === "signal") {
+        av = a.sig.score;
+        bv = b.sig.score;
       } else {
         av = a.m.volume;
         bv = b.m.volume;
@@ -210,6 +213,13 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
             <thead>
               <tr className="bg-zinc-900/90 text-zinc-500 font-mono text-xs uppercase tracking-wider">
                 <th className="px-3 py-2.5 font-medium">Market</th>
+                <th
+                  className="px-3 py-2.5 font-medium cursor-pointer hover:text-emerald-300 select-none"
+                  onClick={() => toggleSort("signal")}
+                  title="Signal Score: observable market activity. Not a prediction or advice."
+                >
+                  Signal{sortArrow("signal")}
+                </th>
                 <th className="px-3 py-2.5 font-medium">Src</th>
                 <th
                   className="px-3 py-2.5 font-medium cursor-pointer hover:text-emerald-300 select-none"
@@ -232,9 +242,8 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ m, cats }, i) => {
+              {rows.map(({ m, cats, sig }, i) => {
                 const mv = moveCell(m.move);
-                const sig = signalScore(m, markets);
                 const isOpen = expanded === i;
                 return (
                   <Fragment key={i}>
@@ -246,11 +255,6 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                     >
                       <td className="px-3 py-2 max-w-md text-zinc-200 leading-snug">
                         <div className="flex items-start gap-2">
-                          <span
-                            className="mt-1.5 h-2 w-2 rounded-full shrink-0"
-                            style={{ backgroundColor: BAND_COLOR[sig.band] }}
-                            title={`Signal ${sig.score}/100 · ${sig.label}${sig.reasons.length ? " · " + sig.reasons.join(", ") : ""}`}
-                          />
                           <span className="text-zinc-600 font-mono text-xs mt-1">
                             {isOpen ? "▾" : "▸"}
                           </span>
@@ -273,6 +277,20 @@ export default function MarketTable({ markets }: { markets: Market[] }) {
                             )}
                           </div>
                         </div>
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className="inline-flex items-center gap-1.5"
+                          title={`Signal ${sig.score}/100 · ${sig.label}${sig.reasons.length ? " · " + sig.reasons.join(", ") : ""}. Observable activity, not a prediction or advice.`}
+                        >
+                          <span
+                            className="h-2 w-2 rounded-full shrink-0"
+                            style={{ backgroundColor: BAND_COLOR[sig.band] }}
+                          />
+                          <span className="font-mono text-xs tabular-nums text-zinc-300">
+                            {sig.score}
+                          </span>
+                        </span>
                       </td>
                       <td className="px-3 py-2">
                         <span
