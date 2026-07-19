@@ -135,9 +135,33 @@ export default function Copilot({ market }: { market: Market }) {
       </div>
 
       {loading && (
-        <p className="mt-2 font-mono text-[10px] text-zinc-600">
-          Analyzing{isSport ? " and checking recent results" : ""}…
-        </p>
+        <div className="mt-3">
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `
+@keyframes s402bar{0%,100%{transform:scaleX(.35);opacity:.45}50%{transform:scaleX(1);opacity:.9}}
+@media (prefers-reduced-motion: reduce){.s402bar{animation:none!important}}
+`,
+            }}
+          />
+          <div className="flex flex-col gap-1.5 max-w-[220px]">
+            <span
+              className="s402bar h-1.5 rounded-full bg-emerald-400/70"
+              style={{ transformOrigin: "left", animation: "s402bar 1.4s ease-in-out infinite", width: "100%" }}
+            />
+            <span
+              className="s402bar h-1.5 rounded-full bg-emerald-400/70"
+              style={{ transformOrigin: "left", animation: "s402bar 1.4s ease-in-out .25s infinite", width: "70%" }}
+            />
+            <span
+              className="s402bar h-1.5 rounded-full bg-emerald-400/70"
+              style={{ transformOrigin: "left", animation: "s402bar 1.4s ease-in-out .5s infinite", width: "85%" }}
+            />
+          </div>
+          <p className="mt-2 font-mono text-[10px] text-zinc-600">
+            Analyzing{isSport ? " and checking recent results" : ""}…
+          </p>
+        </div>
       )}
       {error && <p className="mt-2 font-mono text-xs text-rose-400">{error}</p>}
       {answer && (
