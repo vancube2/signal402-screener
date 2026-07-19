@@ -6,6 +6,7 @@
 import { useState, useEffect } from "react";
 import { Market } from "./types";
 import MarketTable from "./MarketTable";
+import ActivityRadar from "./ActivityRadar";
 import Dashboard from "./Dashboard";
 import { TrendPoint } from "./TrendChart";
 import { crossSourceGroups, groupStats } from "./lib/enrich/compareStats";
@@ -104,6 +105,7 @@ export default function ScreenerApp({ markets: initialMarkets }: { markets: Mark
       <Hero markets={allMarkets} />
       <MatchTicker markets={allMarkets} loading={txlineLoading} />
       <Dashboard markets={allMarkets} history={history} />
+      <ActivityRadar markets={allMarkets} />
       <CalibrationView compact />
       {/* view toggle */}
       <div className="flex gap-1 mb-4">
