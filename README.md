@@ -100,4 +100,6 @@ Planned work, in rough order of value:
 
 ## Status
 
-Built for the TxLINE World Cup hackathon, Prediction Market Viewer track. Research and intelligence tool only. Not financial advice, and not a venue for placing bets.
+Signal402 is built for people who need to read prediction markets clearly and decide for themselves, traders, researchers, journalists, and anyone who wants the honest number and the evidence behind it rather than a tip. It was submitted to the TxLINE World Cup hackathon in the Prediction Market Viewer track, but the product exists for its users, not for the contest.
+
+It is a research and intelligence tool only. It is not financial advice, and it is not a venue for placing bets.
