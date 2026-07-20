@@ -48,3 +48,6 @@ SHA256SUMS*
 *.tar.gz
 review/
 SHA256SUMS*
+
+# allow the safe env template (names only, no secrets)
+!.env.local.example
